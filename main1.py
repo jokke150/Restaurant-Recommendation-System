@@ -8,14 +8,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
+from sklearn.preprocessing import LabelEncoder
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation
 import numpy as np
 
 import pandas as pd
 import os
-
-labels = ['ack', 'affirm', 'bye', 'confirm', 'deny', 'hello', 'inform', 'negate', 'null', 'repeat', 'reqalts',
-          'reqmore', 'request', 'restart', 'thankyou']
 
 
 def read_file():
@@ -126,14 +125,6 @@ def baseline2(dataframe):
     return baseline2
 
 
-def ConvertLabeltoNumber(label):
-    return labels.index(label)
-
-
-def ConvertNumbertoLabel(number):
-    return labels[number]
-
-
 def logisticRegression(training, testing):
     sentences_train = training['text'].values
     sentences_test = testing['text'].values
@@ -154,112 +145,56 @@ def logisticRegression(training, testing):
     return (classifier, vectorizer)
 
 
-def machinelearning1(training, testing):
-    traininglabel = pd.DataFrame({'label': training['label'].values})
-    for index, row in traininglabel.iterrows():
-        row['label'] = ConvertLabeltoNumber(row['label'])
+def neuralnet(training, testing):
 
-    testinglabel = pd.DataFrame({'label': testing['label'].values})
-    for index, row in testinglabel.iterrows():
-        row['label'] = ConvertLabeltoNumber(row['label'])
+    max_words = 5000
+    
+    sents_train = training['text'].values
+    sents_test = testing['text'].values
+    labels_test = testing['label'].values
+    labels_train = training['label'].values
 
-    sentences_train = training['text'].values
-    sentences_test = testing['text'].values
-    y_train = traininglabel['label'].values.astype('int')
-    y_test = testinglabel['label'].values.astype('int')
+    print(sents_train[0])
 
-    tokenizer = Tokenizer(num_words=5000)
-    tokenizer.fit_on_texts(sentences_train)
+    # Tokenize our training data
+    tokenizer = Tokenizer(num_words=1000, oov_token='<UNK>')
+    tokenizer.fit_on_texts(sents_train)
 
-    X_train = tokenizer.texts_to_sequences(sentences_train)
-    X_test = tokenizer.texts_to_sequences(sentences_test)
+    # Encode data into sequences
+    x_train = tokenizer.texts_to_sequences(sents_train)
+    x_test = tokenizer.texts_to_sequences(sents_test)
 
-    vocab_size = len(tokenizer.word_index) + 1  # Adding 1 because of reserved 0 index
+    # Pad the sequences
+    x_train = pad_sequences(x_train, padding='post', truncating='post', maxlen=max_words)
+    x_test = pad_sequences(x_test, padding='post', truncating='post', maxlen=max_words)
 
-    maxlen = 1000
-
-    X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
-    X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
-    embedding_dim = 50
-
-    model = Sequential()
-    model.add(layers.Embedding(input_dim=vocab_size,
-                               output_dim=embedding_dim,
-                               input_length=maxlen))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(10, activation='relu'))
-    model.add(layers.Dense(1, activation='sigmoid'))
-
-    model.compile(loss='binary_crossentropy',
-                  optimizer='adam',
-                  metrics=['accuracy'])
-
-    model.summary()
-
-    history = model.fit(X_train, y_train,
-                        epochs=1,
-                        verbose=False,
-                        validation_data=(X_test, y_test),
-                        batch_size=5000)
-
-    loss, accuracy = model.evaluate(X_train, y_train, verbose=False)
-    print("Training Accuracy: {:.4f}".format(accuracy))
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=False)
-    print("Testing Accuracy:  {:.4f}".format(accuracy))
-
-
-def machinelearning2(training, testing):
-    traininglabel = pd.DataFrame({'label': training['label'].values})
-    for index, row in traininglabel.iterrows():
-        row['label'] = ConvertLabeltoNumber(row['label'])
-
-    testinglabel = pd.DataFrame({'label': testing['label'].values})
-    for index, row in testinglabel.iterrows():
-        row['label'] = ConvertLabeltoNumber(row['label'])
-
-    sentences_train = training['text'].values
-    sentences_test = testing['text'].values
-    y_train = traininglabel['label'].values.astype('int')
-    y_test = testinglabel['label'].values.astype('int')
-
-    tokenizer = Tokenizer(num_words=5000)
-    tokenizer.fit_on_texts(sentences_train)
-
-    X_train = tokenizer.texts_to_sequences(sentences_train)
-    X_test = tokenizer.texts_to_sequences(sentences_test)
-
-    vocab_size = len(tokenizer.word_index) + 1  # Adding 1 because of reserved 0 index
-
-    maxlen = 1000
-
-    X_train = pad_sequences(X_train, padding='post', maxlen=maxlen)
-    X_test = pad_sequences(X_test, padding='post', maxlen=maxlen)
-    embedding_dim = 50
+    # Hot-encode labels
+    num_classes = 15
+    label_encoder = LabelEncoder()
+    y_train = label_encoder.fit_transform(labels_train)
+    y_test = label_encoder.transform(labels_test)
+    y_train = keras.utils.to_categorical(y_train, num_classes)
+    y_test = keras.utils.to_categorical(y_test, num_classes)
 
     model = Sequential()
-    model.add(layers.Embedding(input_dim=vocab_size,
-                               output_dim=embedding_dim,
-                               input_length=maxlen))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(10, activation='relu'))
-    model.add(layers.Dense(1, activation='sigmoid'))
+    model.add(Dense(1024, input_shape=(max_words,)))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(1024))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.25))
+    model.add(Dense(num_classes))
+    model.add(Activation('softmax'))
 
-    model.compile(loss='binary_crossentropy',
-                  optimizer='adam',
-                  metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    model.summary()
+    history = model.fit(x_train, y_train, batch_size=32, epochs=20, verbose=1, validation_split=0.2)
+    score = model.evaluate(x_test, y_test, batch_size=32, verbose=1)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
 
-    history = model.fit(X_train, y_train,
-                        epochs=1,
-                        verbose=False,
-                        validation_data=(X_test, y_test),
-                        batch_size=5000)
+    return model
 
-    loss, accuracy = model.evaluate(X_train, y_train, verbose=False)
-    print("Training Accuracy: {:.4f}".format(accuracy))
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=False)
-    print("Testing Accuracy:  {:.4f}".format(accuracy))
 
 def RepresentsInt(s):
     try:
@@ -322,7 +257,7 @@ if __name__ == '__main__':
                 print(baseline2Check(varinp))
 
         elif inp == 3:
-            machinelearning1(training_dataframe, testing_dataframe)
+            model = neuralnet(training_dataframe, testing_dataframe)
 
         elif inp == 4:
             classifier, vectorizer = logisticRegression(training_dataframe, testing_dataframe)
