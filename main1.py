@@ -9,13 +9,12 @@ from sklearn.linear_model import LogisticRegression
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.preprocessing import LabelEncoder
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation
 import numpy as np
 
 import pandas as pd
 import os
-
 
 def read_file():
     df = pd.read_csv("rand_dialog_acts.dat",
@@ -188,8 +187,13 @@ def neuralnet(training, testing):
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    history = model.fit(x_train, y_train, batch_size=32, epochs=20, verbose=1, validation_split=0.2)
-    score = model.evaluate(x_test, y_test, batch_size=32, verbose=1)
+    try:
+      tf.device("gpu:0")
+    except:
+      print("not using a gpu")
+    
+    history = model.fit(x_train, y_train, batch_size=2048, epochs=75, verbose=1, validation_split=0.2)
+    score = model.evaluate(x_test, y_test, batch_size=1024, verbose=1)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
@@ -258,6 +262,7 @@ if __name__ == '__main__':
 
         elif inp == 3:
             model = neuralnet(training_dataframe, testing_dataframe)
+            
 
         elif inp == 4:
             classifier, vectorizer = logisticRegression(training_dataframe, testing_dataframe)
