@@ -164,14 +164,16 @@ def neuralnet(hp):
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    K.set_value(model.optimizer.learning_rate, hp.Float("learning rate", min_value = 0.001, max_value = 0.01, step=0.001))
+    ###Learning rate####
+    #Here you can adjust the learning rate of the optimizer. In this case the learning rate has a few options for the hyperparameter tuning
+    K.set_value(model.optimizer.learning_rate, hp.Choice("learning rate", [0.001, 0.01, 0.005, 0.0001]))
 
     try:
         tf.device("gpu:0")
     except:
         print("not using a gpu")
 
-    history = model.fit(x_train, y_train, batch_size=2048, epochs=25, verbose=1, validation_split=0.2)
+    history = model.fit(x_train, y_train, batch_size=2048, epochs=50, verbose=1, validation_split=0.2)
     score = model.evaluate(x_test, y_test, batch_size=1024, verbose=1)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
@@ -250,7 +252,7 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 #In the neural network, instead of using for instance Dropout(0.5), you can use:
 #Dropout(hp.Float("Here you determine the range of values you want to try out))
           
-tuner = kt.RandomSearch(neuralnet, objective = 'val_accuracy', max_trials = 3, executions_per_trial=1, directory="test", project_name="TUNER")
+tuner = kt.RandomSearch(neuralnet, objective = 'val_accuracy', max_trials = 30, executions_per_trial=1, directory="test", project_name="TUNER")
 tuner.search(x=x_train, y=y_train, epochs=50, batch_size=512, validation_data=(x_test, y_test),)
 
 
