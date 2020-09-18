@@ -1,12 +1,14 @@
+import os
 from collections import Counter
 import keras
 from keras.preprocessing.text import Tokenizer
 from keras.datasets import reuters
 from keras_preprocessing.sequence import pad_sequences
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation
-
+from keras.layers import Dense, Dropout, Activation, Embedding, MaxPooling1D, Conv1D, Input, Flatten, GlobalMaxPooling1D
+from keras.models import Model
 
 class Utterance:
     def __init__(self, words, label):
@@ -117,11 +119,10 @@ if __name__ == '__main__':
     labels_test = [utterance.label for utterance in test_utterances]
     labels_train = [utterance.label for utterance in train_utterances]
 
-    print(sents_train[0])
-
     # Tokenize our training data
     tokenizer = Tokenizer(num_words=1000, oov_token='<UNK>')
     tokenizer.fit_on_texts(sents_train)
+    word_index = tokenizer.word_index
 
     # Encode data into sequences
     x_train = tokenizer.texts_to_sequences(sents_train)
@@ -139,20 +140,51 @@ if __name__ == '__main__':
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
-    model = Sequential()
-    model.add(Dense(1024, input_shape=(max_words,)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(1024))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.25))
-    model.add(Dense(num_classes))
-    model.add(Activation('softmax'))
+    embeddings_index = {}
+    f = open('glove.6B.100d.txt', encoding="utf8")
+    for line in f:
+        values = line.split()
+        word = values[0]
+        coefs = np.asarray(values[1:], dtype='float32')
+        embeddings_index[word] = coefs
+    f.close()
+
+    embedding_dim = 100
+
+    embedding_matrix = np.zeros((len(word_index) + 1, embedding_dim))
+    for word, i in word_index.items():
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
+
+    embedding_layer = Embedding(len(word_index) + 1,
+                                embedding_dim,
+                                weights=[embedding_matrix],
+                                input_length=max_words,
+                                trainable=False)
+
+    sequence_input = Input(shape=(max_words,), dtype='int64')
+    embedded_sequences = embedding_layer(sequence_input)
+    x = Conv1D(128, 2, activation='relu', padding='same')(embedded_sequences)
+    x = MaxPooling1D(2)(x)
+    x = Dropout(0.25)(x)  # To prevent overfitting
+    x = Conv1D(128, 2, activation='relu', padding='same')(x)
+    x = MaxPooling1D(2)(x)
+    x = Dropout(0.25)(x)  # To prevent overfitting
+    x = Conv1D(128, 2, activation='relu', padding='same')(x)
+    x = GlobalMaxPooling1D()(x)
+    x = Flatten()(x)
+    x = Dense(128, activation="relu")(x)
+    x = Dropout(0.5)(x)  # To prevent overfitting
+    preds = Dense(num_classes, activation='softmax')(x)
+
+    model = Model(sequence_input, preds)
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    history = model.fit(x_train, y_train, batch_size=32, epochs=20, verbose=1, validation_split=0.2)
-    score = model.evaluate(x_test, y_test, batch_size=32, verbose=1)
+    history = model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2)
+    score = model.evaluate(x_test, y_test, batch_size=128, verbose=1)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
