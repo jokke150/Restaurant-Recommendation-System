@@ -1,3 +1,5 @@
+import pickle
+
 from scipy.odr import Model
 from tensorflow import keras
 from sklearn.feature_extraction.text import CountVectorizer
@@ -157,7 +159,6 @@ def neural_net(x_train, x_test, y_test, y_train):
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
-
     # prepare GloVe embeddings
     embeddings_index = {}
     f = open('glove.6B.100d.txt', encoding="utf8")
@@ -202,10 +203,19 @@ def neural_net(x_train, x_test, y_test, y_train):
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    history = model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2)
+    model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2)
+
     score = model.evaluate(x_test, y_test, batch_size=128, verbose=1)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+    # save model for use in next exercise
+    model.save('speech_act_model.h5')
+
+    # save label encoder for use in next exercise
+    outfile = open('label_encoder.pickle','wb')
+    pickle.dump(label_encoder, outfile)
+    outfile.close()
 
     return model
 
