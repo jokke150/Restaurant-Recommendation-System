@@ -37,7 +37,7 @@ def neural_net(x_train, x_test, y_test, y_train):
 
     # prepare GloVe embeddings
     embeddings_index = {}
-    f = open(os.path.dirname(__file__) + '/../glove.6B.100d.txt', encoding="utf8")
+    f = open(os.path.dirname(__file__) + '/../data/glove.6B.100d.txt', encoding="utf8")
     for line in f:
         values = line.split()
         word = values[0]
