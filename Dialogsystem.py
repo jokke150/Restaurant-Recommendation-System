@@ -1,7 +1,6 @@
 import exercise1a as main
 import pandas as pd
-import Levenshtein
-import random
+import word_matching as w_m
 
 cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese", \
             "international", "portuguese", "mediterranean", "british", "indian",  \
@@ -11,34 +10,6 @@ cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese"
 locations = ["center", "north", "east", "south", "west"]
 
 ranges = ["moderate", "cheap", "expensive"]
-
-
-def closest_word_in_list(word, words):
-    closest_words = []
-    closest_distance = 500
-    for baseword in words:
-        dist = Levenshtein.distance(word, baseword)
-        if (dist < closest_distance):
-            closest_distance = dist
-            closest_words = [baseword]
-        elif (dist == closest_distance):
-            closest_words.append(baseword)
-
-    return (closest_distance,closest_words)
-            
-
-def choose_closest_word(word, words):
-    closest_distance, closest_words = closest_word_in_list(word,words)
-    if((len(word) <= 3 and closest_distance <= 1) or (len(word) > 3 and closest_distance <= 3)):
-        if(len(closest_words)>1):
-            return closest_words[random.randrange(0,len(closest_words))]
-        else:
-            return closest_words[0]
-    
-def matched_words_in_split(split,words):
-    mp = map(lambda x: choose_closest_word(x,words),split)
-    return list(filter(lambda x: x != None,mp))
-
 
 def suggest_restaurant(foodtype, area, pricerange):
     
@@ -92,20 +63,20 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
         print("IN REQALTS")
         #If foodtype was known but a new foodtype preference is expressed, save this new one
         if foodtype != "":
-            for word in matched_words_in_split(split,cuisines):
+            for word in w_m.matched_words_in_split(split,cuisines):
                 foodtype = word
                 return suggest_restaurant(foodtype, area, pricerange)
          
         #If foodtype area was known but a new area preference is expressed, save this new one
         if area != "":
-            for word in matched_words_in_split(split,locations):
+            for word in w_m.matched_words_in_split(split,locations):
                 area = word
                 return suggest_restaurant(foodtype, area, pricerange)
         
          
         #If pricerange was known but a new foodtype preference is expressed, save this new one
         if pricerange != "":
-            for word in matched_words_in_split(split,ranges):
+            for word in w_m.matched_words_in_split(split,ranges):
                 pricerange = word
                 return suggest_restaurant(foodtype, area, pricerange)
     
@@ -159,7 +130,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                 
         #Check if the area is unknown but mentioned by the user
         if area == "":
-            for word in matched_words_in_split(split,locations):
+            for word in w_m.matched_words_in_split(split,locations):
                 area = word
                 if pricerange == "":
                     print("What price range would you like?")
@@ -175,7 +146,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                
         #Check if the pricerange is unknown but mentioned by the user    
         if pricerange == "":
-            for word in matched_words_in_split(split,ranges):
+            for word in w_m.matched_words_in_split(split,ranges):
                 pricerange = word
                 if area == "":
                     print("In what area would you like to look for a restaurant?")
@@ -191,7 +162,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
             
         #Check if the foodtype is unknown but mentioned by the user
         if foodtype == "":
-            for word in matched_words_in_split(split,cuisines):
+            for word in w_m.matched_words_in_split(split,cuisines):
                 foodtype = word
                 if pricerange == "":
                     print("What price range would you like?")
