@@ -92,20 +92,20 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
         print("IN REQALTS")
         #If foodtype was known but a new foodtype preference is expressed, save this new one
         if foodtype != "":
-            for word in matched_words_in_utterance(split,cuisines):
+            for word in matched_words_in_split(split,cuisines):
                 foodtype = word
                 return suggest_restaurant(foodtype, area, pricerange)
          
         #If foodtype area was known but a new area preference is expressed, save this new one
         if area != "":
-            for word in matched_words_in_utterance(split,locations):
+            for word in matched_words_in_split(split,locations):
                 area = word
                 return suggest_restaurant(foodtype, area, pricerange)
         
          
         #If pricerange was known but a new foodtype preference is expressed, save this new one
         if pricerange != "":
-            for word in matched_words_in_utterance(split,ranges):
+            for word in matched_words_in_split(split,ranges):
                 pricerange = word
                 return suggest_restaurant(foodtype, area, pricerange)
     
@@ -159,7 +159,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                 
         #Check if the area is unknown but mentioned by the user
         if area == "":
-            for word in matched_words_in_utterance(split,locations):
+            for word in matched_words_in_split(split,locations):
                 area = word
                 if pricerange == "":
                     print("What price range would you like?")
@@ -175,7 +175,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                
         #Check if the pricerange is unknown but mentioned by the user    
         if pricerange == "":
-            for word in matched_words_in_utterance(split,ranges):
+            for word in matched_words_in_split(split,ranges):
                 pricerange = word
                 if area == "":
                     print("In what area would you like to look for a restaurant?")
@@ -191,7 +191,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
             
         #Check if the foodtype is unknown but mentioned by the user
         if foodtype == "":
-            for word in matched_words_in_utterance(split,cuisines):
+            for word in matched_words_in_split(split,cuisines):
                 foodtype = word
                 if pricerange == "":
                     print("What price range would you like?")
