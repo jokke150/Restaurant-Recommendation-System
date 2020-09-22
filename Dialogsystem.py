@@ -244,7 +244,7 @@ if __name__ == '__main__':
             area = info[1]
             pricerange = info[2]
           
-        print(foodtype, area, pricerange)    
+         
 
       
         
