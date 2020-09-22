@@ -14,6 +14,22 @@ ranges = ["moderate", "cheap", "expensive"]
 
 
 
+def closest_word_in_list(word, words):
+    closest_words = []
+    closest_distance = 500
+    for baseword in words:
+        dist = Levenshtein.distance(word, baseword)
+        if (dist < closest_distance):
+            closest_distance = dist
+            closest_words = [baseword]
+        elif (dist == closest_distance):
+            closest_words.append(baseword)
+
+    return (closest_distance,closest_words)
+            
+
+    
+
 def suggest_restaurant(foodtype, area, pricerange):
     
     
