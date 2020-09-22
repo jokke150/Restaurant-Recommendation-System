@@ -63,19 +63,20 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
     
     if dialog_act == "reqalts":
         
+        print("IN REQALTS")
         #If foodtype was known but a new foodtype preference is expressed, save this new one
         if foodtype != "" and any(word in cuisines for word in split):
             for word in cuisines:
                 if word in split:
                     foodtype = word 
-                    return foodtype, area, pricerange
+                    return suggest_restaurant(foodtype, area, pricerange)
          
         #If foodtype area was known but a new area preference is expressed, save this new one
         if area != "" and any(word in locations for word in split):
             for word in locations:
                 if word in split:
                     area = word 
-                    return foodtype, area, pricerange
+                    return suggest_restaurant(foodtype, area, pricerange)
         
          
         #If pricerange was known but a new foodtype preference is expressed, save this new one
@@ -83,7 +84,8 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
             for word in ranges:
                 if word in split:
                     pricerange = word 
-                    return foodtype, area, pricerange
+                    return suggest_restaurant(foodtype, area, pricerange)
+        
         
     
     
@@ -216,15 +218,11 @@ if __name__ == '__main__':
     classifier, vectorizer = main.logistic_regression(x_train, x_test, y_test, y_train)
     
     varinp = 1
+    
     dialog_act = ""
-    
-    
     foodtype= ""
     area = ""
     pricerange= ""
-    
-   
-    
     topic = ""
     
     print("Hello, welcome to the restaurant service")
