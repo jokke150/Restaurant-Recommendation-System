@@ -2,7 +2,7 @@ import pandas as pd
 
 from learners.baselines import baseline1, baseline2, check_labels, baseline2_check
 from learners.log_regression import logistic_regression
-from learners.neural_net import neural_net
+from learners.neural_net import train_nn, save_nn, load_nn, predict_nn
 
 
 def read_file():
@@ -85,8 +85,19 @@ if __name__ == '__main__':
                 print(baseline2_check(varinp))
 
         elif inp == 3:
-            model = neural_net(x_train, x_test, y_test, y_train)
-            
+            print('type "train" to run the training again')
+            varinp = input()
+            if varinp == 'train':
+                tokenizer, model, label_encoder = train_nn(x_train, x_test, y_test, y_train)
+                save_nn(tokenizer, model, label_encoder)
+            else:
+                tokenizer, model, label_encoder = load_nn()
+
+            while not (varinp == "0"):
+                print("return 0 to stop")
+                print("Input an utterance")
+                varinp = input()
+                print(predict_nn(varinp, tokenizer, model, label_encoder))
 
         elif inp == 4:
             classifier, vectorizer = logistic_regression(x_train, x_test, y_test, y_train)

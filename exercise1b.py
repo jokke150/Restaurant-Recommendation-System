@@ -1,10 +1,9 @@
 import pickle
 
 import numpy as np
-from tensorflow import keras
-from keras.models import load_model
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+
+from learners.neural_net import load_neural_net
 
 
 def ident_speech_act(tokenizer, model, label_encoder, text):
@@ -20,18 +19,7 @@ def ident_speech_act(tokenizer, model, label_encoder, text):
 
 
 if __name__ == '__main__':
-    # load tokenizer
-    infile = open('data/tokenizer.pickle', 'rb')
-    tokenizer = pickle.load(infile)
-    infile.close()
-
-    # load model
-    model = load_model('data/speech_act_model.h5')
-
-    # load label encoder
-    infile = open('data/label_encoder.pickle', 'rb')
-    label_encoder = pickle.load(infile)
-    infile.close()
+    tokenizer, model, label_encoder = load_neural_net()
 
     # how to predict:
     speech_act = ident_speech_act(tokenizer, model, label_encoder, 'hindi food is okay')

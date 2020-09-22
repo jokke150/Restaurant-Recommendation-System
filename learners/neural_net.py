@@ -9,11 +9,12 @@ from sklearn.preprocessing import LabelEncoder
 from keras.layers import Dense, Dropout, Embedding, MaxPooling1D, Conv1D, Input, Flatten, GlobalMaxPooling1D
 from keras.models import Model
 import numpy as np
+from tensorflow.python.keras.models import load_model
 
-def neural_net(x_train, x_test, y_test, y_train):
-    max_words = 100
-    num_words = 1000
+max_words = 100
+num_words = 1000
 
+def train_nn(x_train, x_test, y_test, y_train):
     # Tokenize our training data
     tokenizer = Tokenizer(num_words=num_words, oov_token='<UNK>')
     tokenizer.fit_on_texts(x_train)
@@ -85,6 +86,10 @@ def neural_net(x_train, x_test, y_test, y_train):
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
+    return tokenizer, model, label_encoder
+
+
+def save_nn(tokenizer, model, label_encoder):
     # save tokenizer for use in next exercise
     outfile = open(os.path.dirname(__file__) + '/../data/tokenizer.pickle', 'wb')
     pickle.dump(tokenizer, outfile)
@@ -98,4 +103,29 @@ def neural_net(x_train, x_test, y_test, y_train):
     pickle.dump(label_encoder, outfile)
     outfile.close()
 
-    return model
+
+def load_nn():
+    # load tokenizer
+    infile = open('data/tokenizer.pickle', 'rb')
+    tokenizer = pickle.load(infile)
+    infile.close()
+
+    # load model
+    model = load_model('data/speech_act_model.h5')
+
+    # load label encoder
+    infile = open('data/label_encoder.pickle', 'rb')
+    label_encoder = pickle.load(infile)
+    infile.close()
+
+    return tokenizer, model, label_encoder
+
+
+def predict_nn(text, tokenizer, model, label_encoder):
+    x_test = tokenizer.texts_to_sequences([text])
+
+    # Pad the sequences
+    x_test = pad_sequences(x_test, padding='post', truncating='post', maxlen=max_words)
+
+    prediction = np.argmax(model.predict(x_test), axis=1)
+    return label_encoder.inverse_transform(prediction)[0]
