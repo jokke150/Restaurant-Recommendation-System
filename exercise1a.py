@@ -209,6 +209,11 @@ def neural_net(x_train, x_test, y_test, y_train):
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
+    # save tokenizer for use in next exercise
+    outfile = open('tokenizer.pickle', 'wb')
+    pickle.dump(tokenizer, outfile)
+    outfile.close()
+
     # save model for use in next exercise
     model.save('speech_act_model.h5')
 
@@ -274,7 +279,7 @@ if __name__ == '__main__':
             varinp = 1
             while not (varinp == "0"):
                 print("return 0 to stop")
-                print("Input a utterance")
+                print("Input an utterance")
                 varinp = input()
                 print(most_frequent)
 
@@ -284,7 +289,7 @@ if __name__ == '__main__':
             varinp = 1
             while not (varinp == "0"):
                 print("return 0 to stop")
-                print("Input a utterance")
+                print("Input an utterance")
                 varinp = input()
                 print(baseline2_check(varinp))
 
@@ -297,7 +302,7 @@ if __name__ == '__main__':
             varinp = 1
             while not (varinp == "0"):
                 print("return 0 to stop")
-                print("Input a utterance")
+                print("Input an utterance")
                 varinp = input()
                 i = vectorizer.transform([varinp])
                 print(classifier.predict(i))
