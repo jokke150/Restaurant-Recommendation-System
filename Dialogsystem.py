@@ -1,7 +1,7 @@
 import exercise1a as main
 import pandas as pd
 import Levenshtein
-
+import random
 
 cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese", \
             "international", "portuguese", "mediterranean", "british", "indian",  \
@@ -12,6 +12,7 @@ locations = ["center", "north", "east", "south", "west"]
 
 ranges = ["moderate", "cheap", "expensive"]
 
+min_levenshtein_distance = 3
 
 
 def closest_word_in_list(word, words):
@@ -27,6 +28,15 @@ def closest_word_in_list(word, words):
 
     return (closest_distance,closest_words)
             
+
+def choose_closest_word(word, words):
+    closest_distance, closest_words = closest_word_in_list(word,words)
+    if(closest_distance <= min_levenshtein_distance):
+        if(len(closest_words)>1):
+            return closest_words[random.randrange(0,len(closest_words))]
+        else:
+            return closest_words[0]
+    
 
     
 
