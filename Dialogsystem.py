@@ -14,7 +14,7 @@ ranges = ["moderate", "cheap", "expensive"]
 def suggest_restaurant(foodtype, area, pricerange):
     
     
-    df = pd.read_csv("restaurant_info.csv")
+    df = pd.read_csv("data/restaurant_info.csv")
     subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
     
    

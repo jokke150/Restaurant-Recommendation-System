@@ -21,15 +21,15 @@ def ident_speech_act(tokenizer, model, label_encoder, text):
 
 if __name__ == '__main__':
     # load tokenizer
-    infile = open('tokenizer.pickle', 'rb')
+    infile = open('data/tokenizer.pickle', 'rb')
     tokenizer = pickle.load(infile)
     infile.close()
 
     # load model
-    model = load_model('speech_act_model.h5')
+    model = load_model('data/speech_act_model.h5')
 
     # load label encoder
-    infile = open('label_encoder.pickle', 'rb')
+    infile = open('data/label_encoder.pickle', 'rb')
     label_encoder = pickle.load(infile)
     infile.close()
 
