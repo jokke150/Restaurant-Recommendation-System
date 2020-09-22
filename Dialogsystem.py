@@ -1,6 +1,6 @@
-import main
+import exercise1a as main
 import pandas as pd
-
+import Levenshtein
 
 
 cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese", \
