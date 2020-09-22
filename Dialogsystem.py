@@ -1,17 +1,17 @@
-import exercise1a as main
+import main
 import pandas as pd
 import Levenshtein
 import random
+
 
 cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese", \
             "international", "portuguese", "mediterranean", "british", "indian",  \
             "gastropub", "turkish", "persian", "jamaican", "japanese", "seafood", \
             "cuban", "european", "lebanese", "creative" ]
     
-locations = ["center", "north", "east", "south", "west"]
+locations = ["center", "centre", "north", "east", "south", "west"]
 
 ranges = ["moderate", "cheap", "expensive"]
-
 
 def closest_word_in_list(word, words):
     closest_words = []
@@ -44,24 +44,62 @@ def suggest_restaurant(foodtype, area, pricerange):
     
     
     df = pd.read_csv("restaurant_info.csv")
-    subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
     
-   
+    if not "any" in [foodtype, area, pricerange]:        
+        subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+        restaurant = subframe[:1]
+    elif foodtype == "any" and not area == "any" and not pricerange == "any":
+        subframe = df[(df["food"].isin(cuisines)) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+        restaurant = subframe[:1]
+    elif not foodtype == "any"  and area == "any" and not pricerange == "any":
+        subframe = df[(df["food"] == foodtype) & (df["area"].isin(locations)) & (df["pricerange"] == pricerange)]
+        restaurant = subframe[:1]
+    elif not foodtype == "any" and not area == "any" and pricerange == "any":
+        subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"].isin(ranges))]
+        restaurant = subframe[:1]
+    elif foodtype == "any" and area == "any" and not pricerange == "any":
+        subframe = df[(df["food"].isin(cuisines)) & (df["area"].isin(locations)) & (df["pricerange"] == pricerange)]
+        restaurant = subframe[:1]
+    elif not foodtype == "any" and area == "any" and pricerange == "any":
+        subframe = df[(df["food"] == foodtype) & (df["area"].isin(locations)) & (df["pricerange"].isin(ranges))]
+        restaurant = subframe[:1]
+    elif foodtype == "any" and not area == "any" and pricerange == "any":
+        subframe = df[(df["food"].isin(cuisines)) & (df["area"] == area) & (df["pricerange"].isin(ranges))]
+        restaurant = subframe[:1]
+    else:
+        restaurant = df[:1]
     
-    restaurant = subframe[:1]
     
+    
+        
+      
     if len(subframe) == 0:
         if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
-            
+        
             restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
             name = restaurant["restaurantname"].iloc[0]
             foodtype = restaurant["food"].iloc[0]
             area = restaurant["area"].iloc[0]
             pricerange = restaurant["pricerange"].iloc[0]
             return print("No restaurant available in that pricerange. However,  " + name + " also has " +foodtype+ " food, is also in the " +area+ " part of town, but is in the " +pricerange+ " pricerange.")
+    
+        elif len(df[(df["pricerange"] == pricerange) & (df["area"] == area)]) != 0:
         
+            restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
+            name = restaurant["restaurantname"].iloc[0]
+            foodtype = restaurant["food"].iloc[0]
+            area = restaurant["area"].iloc[0]
+            pricerange = restaurant["pricerange"].iloc[0]
+            return print("No restaurant available with that foodtype. However,  " + name + " is also in the " +area+ " part of town, is in the " +pricerange+ " pricerange but serves " + foodtype + " food")
         
-        return print("Sorry no restaurant with your preferences") 
+        elif len(df[(df["pricerange"] == pricerange) & (df["food"] == foodtype)]) != 0:
+        
+            restaurant = df[(df["food"] == foodtype) & (df["pricerange"] == pricerange)][:1]
+            name = restaurant["restaurantname"].iloc[0]
+            foodtype = restaurant["food"].iloc[0]
+            area = restaurant["area"].iloc[0]
+            pricerange = restaurant["pricerange"].iloc[0]
+            return print("No restaurant available in that area. However,  " + name + " also has " +foodtype+ " food, is also in the " +pricerange+ " pricerange, but is in the " +area+ " part of town.")
     
     name = restaurant["restaurantname"].iloc[0]
     foodtype = restaurant["food"].iloc[0]
@@ -89,7 +127,7 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
     
     if dialog_act == "reqalts":
         
-        print("IN REQALTS")
+     
         #If foodtype was known but a new foodtype preference is expressed, save this new one
         if foodtype != "":
             for word in matched_words_in_split(split,cuisines):
@@ -120,11 +158,11 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                 if pricerange == "":
                     print("What price range would you like?")
                     topic = "pricerange"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 elif area == "":
                     print("In what area would you like to look for a restaurant?")
                     topic = "area"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
                 
@@ -134,11 +172,11 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                 if pricerange == "":
                     print("What price range would you like?")
                     topic = "pricerange"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 elif foodtype == "":
                     print("What type of food would you like")
                     topic = "foodtype"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
             
@@ -148,11 +186,11 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                 if area == "":
                     print("In what area would you like to look for a restaurant?")
                     topic = "area"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 elif foodtype == "":
                     print("What type of food would you like")
                     topic = "foodtype"
-                    return foodtype, area, pricerange
+                    return foodtype, area, pricerange, topic
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
                 
@@ -203,6 +241,10 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                     return foodtype, area, pricerange
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
+        
+       
+            
+              
 
         if foodtype != "" and area != "" and pricerange != "":
                 return suggest_restaurant(foodtype, area, pricerange)
@@ -248,6 +290,7 @@ if __name__ == '__main__':
             foodtype = info[0]
             area = info[1]
             pricerange = info[2]
+            topic = info[3]
           
          
 
