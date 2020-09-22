@@ -1,5 +1,17 @@
-import main2
+import main
 import pandas as pd
+
+
+
+cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese", \
+            "international", "portuguese", "mediterranean", "british", "indian",  \
+            "gastropub", "turkish", "persian", "jamaican", "japanese", "seafood", \
+            "cuban", "european", "lebanese", "creative" ]
+    
+locations = ["center", "north", "east", "south", "west"]
+
+ranges = ["moderate", "cheap", "expensive"]
+
 
 
 def suggest_restaurant(foodtype, area, pricerange):
@@ -13,7 +25,17 @@ def suggest_restaurant(foodtype, area, pricerange):
     restaurant = subframe[:1]
     
     if len(subframe) == 0:
-        print("Sorry no restaurant with your preferences") 
+        if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
+            
+            restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
+            name = restaurant["restaurantname"].iloc[0]
+            foodtype = restaurant["food"].iloc[0]
+            area = restaurant["area"].iloc[0]
+            pricerange = restaurant["pricerange"].iloc[0]
+            return print("No restaurant available in that pricerange. However,  " + name + " also has " +foodtype+ " food, is also in the " +area+ " part of town, but is in the " +pricerange+ " pricerange.")
+        
+        
+        return print("Sorry no restaurant with your preferences") 
     
     name = restaurant["restaurantname"].iloc[0]
     foodtype = restaurant["food"].iloc[0]
@@ -37,6 +59,34 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
        
     if dialog_act == "hello":
         return print("You can ask for restaurants by area, price range or food type")
+    
+    
+    if dialog_act == "reqalts":
+        
+        #If foodtype was known but a new foodtype preference is expressed, save this new one
+        if foodtype != "" and any(word in cuisines for word in split):
+            for word in cuisines:
+                if word in split:
+                    foodtype = word 
+                    return foodtype, area, pricerange
+         
+        #If foodtype area was known but a new area preference is expressed, save this new one
+        if area != "" and any(word in locations for word in split):
+            for word in locations:
+                if word in split:
+                    area = word 
+                    return foodtype, area, pricerange
+        
+         
+        #If pricerange was known but a new foodtype preference is expressed, save this new one
+        if pricerange != "" and any(word in ranges for word in split):
+            for word in ranges:
+                if word in split:
+                    pricerange = word 
+                    return foodtype, area, pricerange
+        
+    
+    
     
     if dialog_act == "inform":
         
@@ -83,156 +133,66 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
                     return foodtype, area, pricerange
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
+                
+                
+        #Check if the area is unknown but mentioned by the user
+        if area == "" and any(word in locations for word in split):
         
-        if area == "" and (('part of town' in text) or ("center" in split) or ("north" in split) or ("east" in split) or ("south" in split) or ("west" in split)):
-              
+            for word in locations:
+                if word in split:
+                    area = word
+                    if pricerange == "":
+                        print("What price range would you like?")
+                        topic = "pricerange"
+                        return foodtype, area, pricerange
+                    elif foodtype == "":
+                        print("What type of food would you like")
+                        topic = "foodtype"
+                        return foodtype, area, pricerange
+                    else:
+                        return suggest_restaurant(foodtype, area, pricerange)
              
-              
-              if "part of town" in split:
-                  area = split[(split.index('part')) - 1]         
-                  
-                  if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                  elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                  else:
-                     return suggest_restaurant(foodtype, area, pricerange)
-                 
-              if "center" in split:
-                   area = "center"
-                   
-                   if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                   elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                   else:
-                     return suggest_restaurant(foodtype, area, pricerange)
-                 
-              if "north" in split:
-                   area = "north"
-                   
-                   if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                   elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                   else:
-                     return suggest_restaurant(foodtype, area, pricerange)
-                 
-              if "east" in split:
-                   area = "east"
-                   
-                   if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                   elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                   else:
-                     return suggest_restaurant(foodtype, area, pricerange)
-                 
-              if "south" in split:
-                   area = "south"
-                   
-                   if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                   elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                   else:
-                     return suggest_restaurant(foodtype, area, pricerange)
-              
-              if "west" in split:
-                   area = "center"
-                   
-                   if pricerange == "":
-                     print("What price range would you like?")
-                     topic = "pricerange"
-                     return foodtype, area, pricerange
-                   elif foodtype == "":
-                     print("What type of food would you like")
-                     topic = "foodtype"
-                     return foodtype, area, pricerange
-                   else:
-                     return suggest_restaurant(foodtype, area, pricerange)         
-                
-        if pricerange == "" and any(word in ["moderate", "cheap", "expensive"] for word in split):
+               
+        #Check if the pricerange is unknown but mentioned by the user    
+        if pricerange == "" and any(word in ranges for word in split):
             
-           
             
-            if "moderate" in split:
-                pricerange = "moderate"
-                
-                if area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
+          
+            for word in ranges:
+                if word in split:
+                    pricerange = word
+                    if area == "":
+                        print("In what area would you like to look for a restaurant?")
+                        topic = "area"
+                        return foodtype, area, pricerange
+                    elif foodtype == "":
+                        print("What type of food would you like")
+                        topic = "foodtype"
+                        return foodtype, area, pricerange
+                    else:
+                        return suggest_restaurant(foodtype, area, pricerange)
              
-            elif "cheap" in split:
-                pricerange = "cheap"
+            
+        #Check if the foodtype is unknown but mentioned by the user
+        if foodtype == "" and any(word in cuisines for word in split):
                 
-                if area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "food"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-                
-            elif "expensive" in split:
-                pricerange = "expensive"
-                
-                
-                if area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
+                for word in cuisines:
+                    if word in split:
+                        foodtype = word
+                        if pricerange == "":
+                            print("What price range would you like?")
+                            topic = "pricerange"
+                            return foodtype, area, pricerange
+                        elif area == "":
+                            print("In what area would you like to look for a restaurant?")
+                            topic = "area"
+                            return foodtype, area, pricerange
+                        else:
+                            return suggest_restaurant(foodtype, area, pricerange)
         
-        if foodtype == "" and 'food' in split:
-                
-                foodtype = split[(split.index('food')) - 1]         
-                
-                if pricerange == "":
-                    print("What price range would you like?")
-                    topic = "pricerange"
-                    return foodtype, area, pricerange
-                elif area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
+        
+       
+            
               
 
         if foodtype != "" and area != "" and pricerange != "":
@@ -245,15 +205,15 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
 if __name__ == '__main__':
 
     
-    df = main2.read_file()
-    train_df, test_df = main2.generate_dataframe(df)
+    df = main.read_file()
+    train_df, test_df = main.generate_dataframe(df)
 
     x_train = train_df['text'].values
     x_test = test_df['text'].values
     y_test = test_df['label'].values
     y_train = train_df['label'].values   
     
-    classifier, vectorizer = main2.logistic_regression(x_train, x_test, y_test, y_train)
+    classifier, vectorizer = main.logistic_regression(x_train, x_test, y_test, y_train)
     
     varinp = 1
     dialog_act = ""
@@ -284,7 +244,7 @@ if __name__ == '__main__':
             area = info[1]
             pricerange = info[2]
           
-            
+        print(foodtype, area, pricerange)    
 
       
         
