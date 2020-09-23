@@ -25,9 +25,17 @@ topic = ""
 
 def input_output(state, utterance):
     dialog_act = main.predict_nn(utterance,tokenizer,model,label_encoder)
+    
+    if(dialog_act == "bye"):
+        return ("bye","Goodbye, enjoy your meal!")
+    
     switcher = {
         "start": start,
-        "informationGathering": informationGathering
+        "informationGathering": StartInformationGathering,
+        "pricerange": pricerange,
+        "foodtype": foodtype,
+        "area": area
+        
     }
     # Get the function from switcher dictionary
     func = switcher.get(state, lambda:(state,"State not defined"))
@@ -40,9 +48,7 @@ def start(da, utterance):
         return ("informationGathering", "You can ask for restaurants by area, price range or food type")
         
 
-def informationGathering(da, utterance):
-
-    
+def StartInformationGathering(da, utterance):
     
     if(da == "inform"):
          # Check if the area is unknown but mentioned by the user
@@ -85,6 +91,16 @@ def informationGathering(da, utterance):
                     return suggest_restaurant(foodtype, area, pricerange)
 
 
+def pricerange(da, utterance):
+    if(da == "inform"):
+        
+    
+
+
+def foodtype(da,utterance):
+
+def area(da,utterance):
+    
 
     
         

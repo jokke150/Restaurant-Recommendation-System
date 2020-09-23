@@ -8,14 +8,6 @@ import dialog_system as ds
 
 if __name__ == '__main__':
 
-
-
-    dialog_act = ""
-    foodtype = ""
-    area = ""
-    pricerange = ""
-    topic = ""
-
     print("Hello, welcome to the restaurant service")
     state = "start"
     
@@ -25,5 +17,3 @@ if __name__ == '__main__':
 
         print(reply)
         
-
-    print("Goodbye, enjoy your meal!")
