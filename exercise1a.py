@@ -48,7 +48,6 @@ if __name__ == '__main__':
     y_train = train_df['label'].values
 
     inp = 1
-    varinp = 1
     while not (inp == 0):
 
         print("0: exit")
@@ -67,44 +66,44 @@ if __name__ == '__main__':
         if inp == 1:
             most_frequent, baseline1 = baseline1(train_df, test_df)
             check_labels(baseline1)
-            varinp = 1
-            while not (varinp == "0"):
+            inp_nested = 1
+            while not (inp_nested == "0"):
                 print("return 0 to stop")
                 print("Input an utterance")
-                varinp = input()
+                inp_nested = input()
                 print(most_frequent)
 
         elif inp == 2:
             baseline2 = baseline2(test_df)
             check_labels(baseline2)
-            varinp = 1
-            while not (varinp == "0"):
+            inp_nested = 1
+            while not (inp_nested == "0"):
                 print("return 0 to stop")
                 print("Input an utterance")
-                varinp = input()
-                print(baseline2_check(varinp))
+                inp_nested = input()
+                print(baseline2_check(inp_nested))
 
         elif inp == 3:
             print('type "train" to run the training again')
-            varinp = input()
-            if varinp == 'train':
+            inp_nested = input()
+            if inp_nested == 'train':
                 tokenizer, model, label_encoder = train_nn(x_train, x_test, y_test, y_train)
                 save_nn(tokenizer, model, label_encoder)
             else:
                 tokenizer, model, label_encoder = load_nn()
 
-            while not (varinp == "0"):
+            while not (inp_nested == "0"):
                 print("return 0 to stop")
                 print("Input an utterance")
-                varinp = input()
-                print(predict_nn(varinp, tokenizer, model, label_encoder))
+                inp_nested = input()
+                print(predict_nn(inp_nested, tokenizer, model, label_encoder))
 
         elif inp == 4:
             classifier, vectorizer = logistic_regression(x_train, x_test, y_test, y_train)
-            varinp = 1
-            while not (varinp == "0"):
+            inp_nested = 1
+            while not (inp_nested == "0"):
                 print("return 0 to stop")
                 print("Input an utterance")
-                varinp = input()
-                i = vectorizer.transform([varinp])
+                inp_nested = input()
+                i = vectorizer.transform([inp_nested])
                 print(classifier.predict(i))

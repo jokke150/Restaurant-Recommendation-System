@@ -14,6 +14,7 @@ from tensorflow.python.keras.models import load_model
 max_words = 100
 num_words = 1000
 
+
 def train_nn(x_train, x_test, y_test, y_train):
     # Tokenize our training data
     tokenizer = Tokenizer(num_words=num_words, oov_token='<UNK>')
