@@ -209,6 +209,10 @@ def suggest_restaurant(state):
         foodtype) + " food in the " + str(pricerange) + " price range"))
 
 
+
+
+
+#TODO some of these parts arent built into the currently running code
 def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
     split = text.split()
 
