@@ -16,12 +16,6 @@ ranges = ["moderate", "cheap", "expensive"]
 
 tokenizer, model, label_encoder = load_nn()
 
-area = ""
-foodtype = ""
-area = ""
-pricerange = ""
-topic = ""
-
 
 def input_output(state, utterance):
     dialog_act = main.predict_nn(utterance,tokenizer,model,label_encoder)
@@ -31,75 +25,136 @@ def input_output(state, utterance):
     
     switcher = {
         "start": start,
-        "informationGathering": StartInformationGathering,
+        "informationGathering": start_information_gathering,
         "pricerange": pricerange,
         "foodtype": foodtype,
         "area": area
         
     }
     # Get the function from switcher dictionary
-    func = switcher.get(state, lambda:(state,"State not defined"))
+    func = switcher.get(state["state"], lambda:(state,"State not defined"))
     
-    return func(dialog_act,utterance)
+    return func(state, dialog_act,utterance)
 
 
-def start(da, utterance):
+def start(state, da, utterance):
     if(da == "hello"):
-        return ("informationGathering", "You can ask for restaurants by area, price range or food type")
+        state["state"] = "informationGathering"
+        return (state, "You can ask for restaurants by area, price range or food type")
         
 
-def StartInformationGathering(da, utterance):
+def start_information_gathering(state,da, utterance):
+    split = utterance.split()
     
     if(da == "inform"):
          # Check if the area is unknown but mentioned by the user
-        if area == "":
+        if state["area"] == "":
             for word in w_m.matched_words_in_split(split, locations):
-                area = word
-                if pricerange == "":
-                    topic = "pricerange"
-                    return ("informationGathering", "What price range would you like?")
-                elif foodtype == "":
-                    topic = "foodtype"
-                    return ("informationGathering", "What type of food would you like?")
+                state["area"] = word
+                if state["pricerange"] == "":
+                    return ask_pricerange(state)
+                elif state["foodtype"] == "":
+                    return ask_foodtype(state)
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
 
         # Check if the pricerange is unknown but mentioned by the user
-        if pricerange == "":
+        if state["pricerange"] == "":
             for word in w_m.matched_words_in_split(split, ranges):
-                pricerange = word
-                if area == "":
-                    topic = "area"
-                    return ("informationGathering", "In what area would you like to look for a restaurant?")
-                elif foodtype == "":
-                    topic = "foodtype"
-                    return ("informationGathering", "What type of food would you like?")
+                state["pricerange"] = word
+                if state["area"] == "":
+                    return ask_area(state)
+                elif state["foodtype"] == "":
+                    return ask_foodtype(state)
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
 
         # Check if the foodtype is unknown but mentioned by the user
-        if foodtype == "":
+        if state["foodtype"] == "":
             for word in w_m.matched_words_in_split(split, cuisines):
-                foodtype = word
-                if pricerange == "":
-                    topic = "pricerange"
-                    return ("informationGathering", "What price range would you like?")
-                elif area == "":
-                    topic = "area"
-                    return ("informationGathering", "In what area would you like to look for a restaurant?")
+                state["foodtype"] = word
+                if state["pricerange"] == "":
+                    return ask_pricerange(state)
+                elif state["area"] == "":
+                    return ask_area(state)
                 else:
                     return suggest_restaurant(foodtype, area, pricerange)
 
 
-def pricerange(da, utterance):
+def ask_pricerange(state):
+    state["state"] = "pricerange"
+    return (state, "What price range would you like?")
+def ask_foodtype(state):
+    state["state"] = "foodtype"
+    return (state, "What type of food would you like?")
+def ask_area(state):
+    state["state"] = "area"
+    return (state, "In what area would you like to look for a restaurant?")
+
+
+
+
+def pricerange(state, da, utterance):
     if(da == "inform"):
-        
-    
+        if utterance == "any":
+            state["pricerange"] = "any"
+            if state["area"] == "":
+                return ask_area(state)
+            elif state["foodtype"] == "":
+                return ask_foodtype(state)
+            else:
+                return suggest_restaurant(foodtype, area, pricerange)
+        if state["pricerange"] == "":
+            for word in w_m.matched_words_in_split(utterance.split(), ranges):
+                state["pricerange"] = word
+                if state["area"] == "":
+                    return ask_area(state)
+                elif state["foodtype"] == "":
+                    return ask_foodtype(state)
+                else:
+                    return suggest_restaurant(foodtype, area, pricerange)
+                
+
+def foodtype(state, da,utterance):
+    if(da == "inform"):
+        if utterance == "any":
+            state["foodtype"] = "any"
+            if state["pricerange"] == "":
+                return ask_pricerange(state)
+            elif state["area"] == "":
+                return ask_area(state)
+            else:
+                return suggest_restaurant(foodtype, area, pricerange)
+        if state["foodtype"] == "":
+            for word in w_m.matched_words_in_split(utterance.split(), cuisines):
+                state["foodtype"] = word
+                if state["pricerange"] == "":
+                    return ask_pricerange(state)
+                elif state["area"] == "":
+                    return ask_area(state)
+                else:
+                    return suggest_restaurant(foodtype, area, pricerange)
 
 
-def foodtype(da,utterance):
-
-def area(da,utterance):
+def area(state,da,utterance):
+    if(da == "inform"):
+        if utterance == "any":
+            state["area"] = "any"
+            if state["pricerange"] == "":
+                return ask_pricerange(state)
+            elif state["foodtype"] == "":
+                return ask_foodtype(state)
+            else:
+                return suggest_restaurant(foodtype, area, pricerange)
+        if state["area"] == "":
+            for word in w_m.matched_words_in_split(utterance.split(), locations):
+                state["area"] = word
+                if state["pricerange"] == "":
+                    return ask_pricerange(state)
+                elif state["foodtype"] == "":
+                    return ask_foodtype(state)
+                else:
+                    return suggest_restaurant(foodtype, area, pricerange)
     
 
     
@@ -173,94 +228,6 @@ def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
 
     if dialog_act == "inform":
 
-        if text == "any":
-
-            if topic == "foodtype":
-                foodtype = "any"
-
-                if pricerange == "":
-                    print("What price range would you like?")
-                    topic = "pricerange"
-                    return foodtype, area, pricerange
-                elif area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-
-            if topic == "area":
-                area = "any"
-
-                if pricerange == "":
-                    print("What price range would you like?")
-                    topic = "pricerange"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-
-            if topic == "pricerange":
-                pricerange = "any"
-
-                if area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-
-        # Check if the area is unknown but mentioned by the user
-        if area == "":
-            for word in w_m.matched_words_in_split(split, locations):
-                area = word
-                if pricerange == "":
-                    print("What price range would you like?")
-                    topic = "pricerange"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-
-        # Check if the pricerange is unknown but mentioned by the user
-        if pricerange == "":
-            for word in w_m.matched_words_in_split(split, ranges):
-                pricerange = word
-                if area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                elif foodtype == "":
-                    print("What type of food would you like")
-                    topic = "foodtype"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
-
-        # Check if the foodtype is unknown but mentioned by the user
-        if foodtype == "":
-            for word in w_m.matched_words_in_split(split, cuisines):
-                foodtype = word
-                if pricerange == "":
-                    print("What price range would you like?")
-                    topic = "pricerange"
-                    return foodtype, area, pricerange
-                elif area == "":
-                    print("In what area would you like to look for a restaurant?")
-                    topic = "area"
-                    return foodtype, area, pricerange
-                else:
-                    return suggest_restaurant(foodtype, area, pricerange)
 
         if foodtype != "" and area != "" and pricerange != "":
             return suggest_restaurant(foodtype, area, pricerange)
