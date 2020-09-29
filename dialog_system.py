@@ -27,11 +27,11 @@ def input_output(state, utterance):
     switcher = {
         "start": start_information_gathering,
         "pricerange": pricerange,
-        "price-affirm-requested": affirm,
+        "price-affirm": affirm,
         "foodtype": foodtype,
-        "food-affirm-requested": affirm,
+        "food-affirm": affirm,
         "area": area,
-        "area-affirm-requested": affirm,
+        "area-affirm": affirm,
         "restaurant-suggested": restaurant_suggested,
         "alt-restaurant-suggested": alt_restaurant_suggested,
     }
@@ -96,6 +96,10 @@ def ask_area(state):
     state["state"] = "area"
     return state, "In what area would you like to look for a restaurant?"
 
+def ask_again(state):
+    # TODO: Actually ask the question again
+    return state, "I was not able to interpret your answer to my last question. Please rephrase."
+
 
 def pricerange(state, da, utterance):
     if (da == "inform"):
@@ -134,33 +138,41 @@ def area(state, da, utterance):
 
 
 def request_price_affirm(state):
-    # TODO
-    return
+    state["state"] = "price-affirm"
+    return state, "Is it correct, that you want a restaurant in the " + state["pricerange"] + " price range?"
 
 
 def request_food_affirm(state):
-    # TODO
-    return
+    state["state"] = "food-affirm"
+    return state, "Is it correct, that you want a restaurant with " + state["foodtype"] + " cuisine?"
 
 def request_area_affirm(state):
-    # TODO
-    return
+    state["state"] = "area-affirm"
+    return state, "Is it correct, that you want a restaurant in the " + state["area"] + " part of town?"
 
 
-def affirm(state, da, utterance):
+def affirm(state, da):
     if da == "affirm":
-
+        if state["state" == "price-affirm"]:
+            state["confirmed_pricerange"] = True
+        if state["state" == "food-affirm"]:
+            state["confirmed_foodtype"] = True
+        if state["state" == "area-affirm"]:
+            state["confirmed_area"] = True
+        state_check(state)
     elif da == "deny":
+        if state["state" == "price-affirm"]:
+            state["pricerange"] = ""
+            ask_pricerange(state)
+        if state["state" == "food-affirm"]:
+            state["foodtype"] = ""
+            ask_foodtype(state)
+        if state["state" == "area-affirm"]:
+            state["area"] = ""
+            ask_area(state)
+    else:
+        ask_again(state)
 
-    elif:
-
-
-    if state["state" == "price-affirm-requested"]:
-
-    if state["state" == "price-affirm-requested"]:
-
-    if state["state" == "price-affirm-requested"]:
-        return
 
 # TODO
 def restaurant_suggested(state, da, utterance):
