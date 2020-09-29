@@ -27,11 +27,13 @@ def input_output(state, utterance):
     switcher = {
         "start": start_information_gathering,
         "pricerange": pricerange,
+        "price-affirm-requested": affirm,
         "foodtype": foodtype,
+        "food-affirm-requested": affirm,
         "area": area,
-        "alt-restaurant-suggested": alt_restaurant_given,
-        "restaurant-suggested": restaurant_given
-
+        "area-affirm-requested": affirm,
+        "restaurant-suggested": restaurant_suggested,
+        "alt-restaurant-suggested": alt_restaurant_suggested,
     }
     # Get the function from switcher dictionary
     func = switcher.get(state["state"], lambda: (state, "State not defined"))
@@ -158,13 +160,43 @@ def area(state, da, utterance):
                     return suggest_restaurant(state)
 
 
+def request_price_affirm(state, da, utterance):
+    # TODO
+    return
+
+
+def request_food_affirm(state, da, utterance):
+    # TODO
+    return
+
+def request_area_affirm(state, da, utterance):
+    # TODO
+    return
+
+
+def affirm(state, da, utterance):
+    if da == "affirm":
+
+    else if da == "deny":
+
+    else:
+
+
+    if state["state" == "price-affirm-requested"]:
+
+    if state["state" == "price-affirm-requested"]:
+
+    if state["state" == "price-affirm-requested"]:
+        return
+
 # TODO
-def restaurant_given(state, da, utterance):
+def restaurant_suggested(state, da, utterance):
+
     return (state, "")
 
 
 # TODO
-def alt_restaurant_given(state, da, utterance):
+def alt_restaurant_suggested(state, da, utterance):
     return (state, "")
 
 
@@ -209,17 +241,6 @@ def suggest_restaurant(state):
 # TODO some of these parts arent built into the currently running code
 def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
     split = text.split()
-
-    if dialog_act == "affirm":
-        if foodtype == "":
-            return print("What type of food would you like")
-        if area == "":
-            return print("In what area would you like to look for a restaurant?")
-        if pricerange == "":
-            return print("What price range would you like?")
-
-    if dialog_act == "hello":
-        return print("You can ask for restaurants by area, price range or food type")
 
     if dialog_act == "reqalts":
 
