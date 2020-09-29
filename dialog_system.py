@@ -66,35 +66,35 @@ def start_information_gathering(state, da, utterance):
     
 
 def state_check(state):
-    if state["pricerange"] == "":
+    if state["pricerange"] != "" and not state["confirmed_pricerange"]:
+        return request_price_affirm(state)
+    elif state["foodtype"] != "" and not state["confirmed_foodtype"]:
+        return request_food_affirm(state)
+    elif state["area"] != "" and not state["confirmed_area"]:
+        return request_area_affirm(state)
+    elif state["pricerange"] == "":
         return ask_pricerange(state)
     elif state["foodtype"] == "":
         return ask_foodtype(state)
     elif state["area"] == "":
         return ask_area(state)
-    elif not state["confirmed_foodtype"]:
-        return #TODO confirmfoodtype
-    elif not state["confirmed_area"]:
-        return #TODO confirmarea
-    elif not state["confirmed_pricerange"]:
-        return #TODO confirmpricerange
     else:
         return suggest_restaurant(state)
     
 
 def ask_pricerange(state):
     state["state"] = "pricerange"
-    return (state, "What price range would you like?")
+    return state, "What price range would you like?"
 
 
 def ask_foodtype(state):
     state["state"] = "foodtype"
-    return (state, "What type of food would you like?")
+    return state, "What type of food would you like?"
 
 
 def ask_area(state):
     state["state"] = "area"
-    return (state, "In what area would you like to look for a restaurant?")
+    return state, "In what area would you like to look for a restaurant?"
 
 
 def pricerange(state, da, utterance):
@@ -160,16 +160,16 @@ def area(state, da, utterance):
                     return suggest_restaurant(state)
 
 
-def request_price_affirm(state, da, utterance):
+def request_price_affirm(state):
     # TODO
     return
 
 
-def request_food_affirm(state, da, utterance):
+def request_food_affirm(state):
     # TODO
     return
 
-def request_area_affirm(state, da, utterance):
+def request_area_affirm(state):
     # TODO
     return
 
@@ -177,9 +177,9 @@ def request_area_affirm(state, da, utterance):
 def affirm(state, da, utterance):
     if da == "affirm":
 
-    else if da == "deny":
+    elif da == "deny":
 
-    else:
+    elif:
 
 
     if state["state" == "price-affirm-requested"]:
