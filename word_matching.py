@@ -34,7 +34,9 @@ def matched_words_in_split(split, words):
 
 def closest_word(split, words):
     matched_words = matched_words_in_split(split,words)
-    return matched_words[0]
+    if len(matched_words) != 0:
+        return matched_words[0]
+    return ""
 
 def takeFirst(item):
     return item[0]

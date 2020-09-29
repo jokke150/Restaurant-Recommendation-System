@@ -45,28 +45,29 @@ def start_information_gathering(state, da, utterance):
     if (da == "inform"):
         # Check if the area is unknown but mentioned by the user
         if state["area"] == "":
-            for word in w_m.matched_words_in_split(split, locations):
+            word = w_m.closest_word(split, locations)
+            if word != "":
                 state["area"] = word
-
         # Check if the pricerange is unknown but mentioned by the user
         if state["pricerange"] == "":
-            for word in w_m.matched_words_in_split(split, ranges):
+            
+            word = w_m.closest_word(split, ranges)
+            if word != "":
                 state["pricerange"] = word
-
         # Check if the foodtype is unknown but mentioned by the user
         if state["foodtype"] == "":
-            print(w_m.matched_words_in_split(split, cuisines))
-            for word in w_m.matched_words_in_split(split, cuisines):
+            word = w_m.closest_word(split, cuisines)
+            if word != "":
                 state["foodtype"] = word
-
-        print(state)
-
-        # if state["pricerange"] == "":
-        #         return ask_pricerange(state)
-        #     elif state["foodtype"] == "":
-        #         return ask_foodtype(state)
-        #     else:
-        #         return suggest_restaurant(state)
+                
+        if state["pricerange"] == "":
+            return ask_pricerange(state)
+        elif state["foodtype"] == "":
+            return ask_foodtype(state)
+        elif state["area"] == "":
+            return ask_area(state)
+        else:
+            return suggest_restaurant(state)
 
 
 def ask_pricerange(state):
