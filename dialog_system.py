@@ -208,6 +208,7 @@ def restaurant_suggested(state, da, utterance):
         word = w_m.closest_word(split, requests)
         if word == "phone" or word == "number":
             subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+            restaurant = subframe[:1]
             name = restaurant["restaurantname"].iloc[0]
 
 
@@ -227,9 +228,9 @@ def suggest_restaurant(state):
     pricerange = state["pricerange"]
 
     subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
-
+    print(subframe)
     restaurant = subframe[:1]
-
+    print(restaurant)
     if len(subframe) == 0:
         if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
             restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
@@ -238,14 +239,14 @@ def suggest_restaurant(state):
             area = restaurant["area"].iloc[0]
             pricerange = restaurant["pricerange"].iloc[0]
             state["state"] = "alt-restaurant-suggested"
-            return (state, print(
+            return (state,
                 "No restaurant available in that pricerange. However,  " + name + " also has " + foodtype + "food, is "
                                                                                                             "also in "
                                                                                                             "the " +
-                area + " part of town, but is in the " + pricerange + " pricerange."))
+                area + " part of town, but is in the " + pricerange + " pricerange.")
 
         state["state"] = "end"
-        return (state, print("Sorry no restaurant with your preferences"))
+        return (state, "Sorry no restaurant with your preferences")
 
     name = restaurant["restaurantname"].iloc[0]
     foodtype = restaurant["food"].iloc[0]
@@ -255,5 +256,5 @@ def suggest_restaurant(state):
     state["state"] = "restaurant-suggested"
     state["restaurant"] = name
 
-    return (state, print(str(name) + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
-        foodtype) + " food in the " + str(pricerange) + " price range"))
+    return (state, str(name) + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
+        foodtype) + " food in the " + str(pricerange) + " price range")
