@@ -3,7 +3,7 @@ import word_matching as w_m
 import exercise1a as main
 from learners.neural_net import load_nn
 
-df = pd.read_csv("data/restaurant_info.csv")
+restaurant_db = pd.read_csv("data/restaurant_info.csv")
 
 cuisines = ["spanish", "italian", "french", "world", "thai", "bistro", "chinese",
             "international", "portuguese", "mediterranean", "british", "indian",
@@ -206,7 +206,7 @@ def restaurant_suggested(state, da, utterance):
         string = ""
         word = w_m.closest_word(split, ["phone","number"])
 
-        subframe = df[(df["restaurantname"] == state["restaurant"])]
+        subframe = restaurant_db[(restaurant_db["restaurantname"] == state["restaurant"])]
         restaurant = subframe[:1]
         name = restaurant["restaurantname"].iloc[0]
 
@@ -244,7 +244,7 @@ def restaurants_given_state(state):
     area = state["area"]
     pricerange = state["pricerange"]
 
-    return df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+    return restaurant_db[(restaurant_db["food"] == foodtype) & (restaurant_db["area"] == area) & (restaurant_db["pricerange"] == pricerange)]
 
 
 def suggest_restaurant(state):
@@ -253,11 +253,12 @@ def suggest_restaurant(state):
     area = state["area"]
     pricerange = state["pricerange"]
 
-    restaurant = restaurants_given_state(state)[:1]
+    restaurants = restaurants_given_state(state)
+    restaurant = restaurants[:1]
 
-    if len(subframe) == 0:
-        if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
-            restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
+    if len(restaurants) == 0:
+        if len(restaurant_db[(restaurant_db["food"] == foodtype) & (restaurant_db["area"] == area)]) != 0:
+            restaurant = restaurant_db[(restaurant_db["food"] == foodtype) & (restaurant_db["area"] == area)][:1]
             name = restaurant["restaurantname"].iloc[0]
             foodtype = restaurant["food"].iloc[0]
             area = restaurant["area"].iloc[0]
