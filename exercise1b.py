@@ -13,6 +13,6 @@ if __name__ == '__main__':
         inp = input().lower()
         state, reply = input_output(state, inp)
 
-        print("State: " + state["state"] + ", Area: " + state["area"] + "Confirmed: "+ state["confirmed_area"] + ", Foodtype: " + state[
-            "foodtype"] + "Confirmed: "+ state["confirmed_foodtype"] + ", Pricerange: " + state["pricerange"]+  "Confirmed: "+ state["confirmed_pricerange"] )
+        print("State: " + state["state"] + ",\n Area: " + state["area"] + " Confirmed: "+ str(state["confirmed_area"]) + ",\n Foodtype: " + state[
+            "foodtype"] + " Confirmed: "+ str(state["confirmed_foodtype"]) + ",\n Pricerange: " + state["pricerange"]+  " Confirmed: "+ str(state["confirmed_pricerange"]) )
         print(reply)

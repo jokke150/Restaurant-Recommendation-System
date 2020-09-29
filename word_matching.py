@@ -18,7 +18,7 @@ def closest_word_in_list(word, words):
 
 def choose_closest_word(word, words):
     closest_distance, closest_words = closest_word_in_list(word, words)
-    if (len(word) <= 3 and closest_distance <= 1) or (len(word) > 3 and closest_distance <= 3):
+    if (len(word) <= 4 and closest_distance <= 1) or (len(word) > 4 and closest_distance <= 3):
         # TODO Ask the user which of the options is the one he was asking for
         if len(closest_words) > 1:
             return (closest_distance,closest_words[random.randrange(0, len(closest_words))])
