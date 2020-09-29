@@ -21,11 +21,23 @@ def choose_closest_word(word, words):
     if (len(word) <= 3 and closest_distance <= 1) or (len(word) > 3 and closest_distance <= 3):
         # TODO Ask the user which of the options is the one he was asking for
         if len(closest_words) > 1:
-            return closest_words[random.randrange(0, len(closest_words))]
+            return (closest_distance,closest_words[random.randrange(0, len(closest_words))])
         else:
-            return closest_words[0]
+            return (closest_distance,closest_words[0])
 
 
 def matched_words_in_split(split, words):
     mp = map(lambda x: choose_closest_word(x, words), split)
-    return list(filter(lambda x: x != None, mp))
+    lst = list(filter(lambda x: x != None, mp))
+    lst.sort(key=takeFirst)
+    return list(map(lambda x: takeSecond(x), lst))
+
+def closest_word(split, words):
+    matched_words = matched_words_in_split(split,words)
+    return matched_words[0]
+
+def takeFirst(item):
+    return item[0]
+
+def takeSecond(item):
+    return item[1]
