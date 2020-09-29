@@ -14,8 +14,6 @@ locations = ["center", "north", "east", "south", "west"]
 
 ranges = ["moderate", "cheap", "expensive"]
 
-requests = ["phone","number","address","postcode","post","code"]
-
 tokenizer, model, label_encoder = load_nn()
 
 
@@ -205,14 +203,31 @@ def restaurant_suggested(state, da, utterance):
                 return suggest_restaurant(state)
 
     if da == "request":
-        word = w_m.closest_word(split, requests)
-        if word == "phone" or word == "number":
-            subframe = df[(df["restaurantname"] == state["restaurant"])]
-            restaurant = subframe[:1]
-            name = restaurant["restaurantname"].iloc[0]
-            number = restaurant["phone"].iloc[0]
-            return (state,"The number of " + name + " is: " + number)
+        string = ""
+        word = w_m.closest_word(split, ["phone","number"])
 
+        subframe = df[(df["restaurantname"] == state["restaurant"])]
+        restaurant = subframe[:1]
+        name = restaurant["restaurantname"].iloc[0]
+
+        if word == "phone" or word == "number":
+            restaurant = subframe[:1]
+            number = restaurant["phone"].iloc[0]
+            string += "The number is: " + number
+
+        word = w_m.closest_word(split, ["postcode","post","code"])
+        if word == "address":
+
+            restaurant = subframe[:1]
+            postcode = restaurant["postcode"].iloc[0]
+            string += "The postcode is " + postcode
+
+        word = w_m.closest_word(split, ["address"])
+        if word == "address":
+            address = restaurant["adrr"].iloc[0]
+            string += "The address is" + address
+
+        return (state, string)
 
     return (state, "")
 
@@ -224,13 +239,22 @@ def alt_restaurant_suggested(state, da, utterance):
     return (state, "")
 
 
-def suggest_restaurant(state):
+def restaurants_given_state(state):
     foodtype = state["foodtype"]
     area = state["area"]
     pricerange = state["pricerange"]
 
-    subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
-    restaurant = subframe[:1]
+    return df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+
+
+def suggest_restaurant(state):
+
+    foodtype = state["foodtype"]
+    area = state["area"]
+    pricerange = state["pricerange"]
+
+    restaurant = restaurants_given_state(state)[:1]
+
     if len(subframe) == 0:
         if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
             restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
