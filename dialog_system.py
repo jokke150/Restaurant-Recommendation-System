@@ -213,19 +213,19 @@ def restaurant_suggested(state, da, utterance):
         if word == "phone" or word == "number":
             restaurant = subframe[:1]
             number = restaurant["phone"].iloc[0]
-            string += "The number is: " + number
+            string += "The number is: " + number + "\n"
 
         word = w_m.closest_word(split, ["postcode","post","code"])
-        if word == "address":
+        if word == "postcode" or word == "post" or word == "code":
 
             restaurant = subframe[:1]
             postcode = restaurant["postcode"].iloc[0]
-            string += "The postcode is " + postcode
+            string += "The postcode is " + postcode + "\n"
 
         word = w_m.closest_word(split, ["address"])
         if word == "address":
-            address = restaurant["adrr"].iloc[0]
-            string += "The address is" + address
+            address = restaurant["addr"].iloc[0]
+            string += "The address is " + address
 
         return (state, string)
 
