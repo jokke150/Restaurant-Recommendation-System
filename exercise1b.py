@@ -7,12 +7,12 @@ if __name__ == '__main__':
           "You can ask for restaurants by area, price range, or food type.\n"
           "How may I help you?")
 
-    state = {"state": "start", "foodtype": "", "pricerange": "", "area": "", "restaurant": ""}
+    state = {"state": "start", "foodtype": "","confirmed_foodtype":False, "pricerange": "","confirmed_pricerange":False, "area": "","confirmed_area":False, "restaurant": "",}
 
     while not (state["state"] == "end"):  # Shouldn't the communication only end after bye?
         inp = input().lower()
         state, reply = input_output(state, inp)
 
-        print("State: " + state["state"] + ", Area: " + state["area"] + ", Foodtype: " + state[
-            "foodtype"] + ", Pricerange: " + state["pricerange"])
+        print("State: " + state["state"] + ", Area: " + state["area"] + "Confirmed: "+ state["confirmed_area"] + ", Foodtype: " + state[
+            "foodtype"] + "Confirmed: "+ state["confirmed_foodtype"] + ", Pricerange: " + state["pricerange"]+  "Confirmed: "+ state["confirmed_pricerange"] )
         print(reply)

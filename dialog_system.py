@@ -60,15 +60,25 @@ def start_information_gathering(state, da, utterance):
             if word != "":
                 state["foodtype"] = word
                 
-        if state["pricerange"] == "":
-            return ask_pricerange(state)
-        elif state["foodtype"] == "":
-            return ask_foodtype(state)
-        elif state["area"] == "":
-            return ask_area(state)
-        else:
-            return suggest_restaurant(state)
+        return state_check(state)
+    
 
+def state_check(state):
+    if state["pricerange"] == "":
+        return ask_pricerange(state)
+    elif state["foodtype"] == "":
+        return ask_foodtype(state)
+    elif state["area"] == "":
+        return ask_area(state)
+    elif not state["confirmed_foodtype"]:
+        return #TODO confirmfoodtype
+    elif not state["confirmed_area"]:
+        return #TODO confirmarea
+    elif not state["confirmed_pricerange"]:
+        return #TODO confirmpricerange
+    else:
+        return suggest_restaurant(state)
+    
 
 def ask_pricerange(state):
     state["state"] = "pricerange"
