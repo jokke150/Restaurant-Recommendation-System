@@ -14,6 +14,8 @@ locations = ["center", "north", "east", "south", "west"]
 
 ranges = ["moderate", "cheap", "expensive"]
 
+requests = ["phone","number","address","postcode","post","code"]
+
 tokenizer, model, label_encoder = load_nn()
 
 
@@ -186,7 +188,6 @@ def affirm(state, da, utterance):
 def restaurant_suggested(state, da, utterance):
     split = utterance.split()
     if da == "reqalts":
-        print("IN REQALTS")
         if state["area"] != "":
             word = w_m.closest_word(split, locations)
             if word != "":
@@ -203,7 +204,16 @@ def restaurant_suggested(state, da, utterance):
                 state["foodtype"] = word
                 return suggest_restaurant(state)
 
+    if da == "request":
+        word = w_m.closest_word(split, requests)
+        if word == "phone" or word == "number":
+            subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+            name = restaurant["restaurantname"].iloc[0]
+
+
     return (state, "")
+
+
 
 
 # TODO
@@ -247,13 +257,3 @@ def suggest_restaurant(state):
 
     return (state, print(str(name) + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
         foodtype) + " food in the " + str(pricerange) + " price range"))
-
-
-# TODO some of these parts arent built into the currently running code
-def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
-    if dialog_act == "inform":
-
-        if foodtype != "" and area != "" and pricerange != "":
-            return suggest_restaurant(foodtype, area, pricerange)
-
-        return "The system did not understand the input, please clarify."
