@@ -52,7 +52,7 @@ def start_information_gathering(state, da, utterance):
                 state["area"] = word
         # Check if the pricerange is unknown but mentioned by the user
         if state["pricerange"] == "":
-            
+
             word = w_m.closest_word(split, ranges)
             if word != "":
                 state["pricerange"] = word
@@ -61,9 +61,9 @@ def start_information_gathering(state, da, utterance):
             word = w_m.closest_word(split, cuisines)
             if word != "":
                 state["foodtype"] = word
-                
+
         return state_check(state)
-    
+
 
 def state_check(state):
     if state["pricerange"] != "" and not state["confirmed_pricerange"]:
@@ -80,7 +80,7 @@ def state_check(state):
         return ask_area(state)
     else:
         return suggest_restaurant(state)
-    
+
 
 def ask_pricerange(state):
     state["state"] = "pricerange"
@@ -95,6 +95,7 @@ def ask_foodtype(state):
 def ask_area(state):
     state["state"] = "area"
     return state, "In what area would you like to look for a restaurant?"
+
 
 def ask_again(state):
     # TODO: Actually ask the question again
@@ -111,6 +112,8 @@ def pricerange(state, da, utterance):
             if word != "":
                 state["pricerange"] = word
                 return state_check(state)
+            else:
+                return ask_again(state)
 
 
 def foodtype(state, da, utterance):
@@ -123,6 +126,8 @@ def foodtype(state, da, utterance):
             if word != "":
                 state["foodtype"] = word
                 return state_check(state)
+            else:
+                return ask_again(state)
 
 
 def area(state, da, utterance):
@@ -135,6 +140,8 @@ def area(state, da, utterance):
             if word != "":
                 state["area"] = word
                 return state_check(state)
+            else:
+                return ask_again(state)
 
 
 def request_price_affirm(state):
@@ -146,32 +153,33 @@ def request_food_affirm(state):
     state["state"] = "food-affirm"
     return state, "Is it correct, that you want a restaurant with " + state["foodtype"] + " cuisine?"
 
+
 def request_area_affirm(state):
     state["state"] = "area-affirm"
     return state, "Is it correct, that you want a restaurant in the " + state["area"] + " part of town?"
 
 
-def affirm(state, da):
+def affirm(state, da, utterance):
     if da == "affirm":
-        if state["state" == "price-affirm"]:
+        if state["state"] == "price-affirm":
             state["confirmed_pricerange"] = True
-        if state["state" == "food-affirm"]:
+        if state["state"] == "food-affirm":
             state["confirmed_foodtype"] = True
-        if state["state" == "area-affirm"]:
+        if state["state"] == "area-affirm":
             state["confirmed_area"] = True
-        state_check(state)
-    elif da == "deny":
-        if state["state" == "price-affirm"]:
+        return state_check(state)
+    elif da == "deny" or da == "negate":
+        if state["state"] == "price-affirm":
             state["pricerange"] = ""
-            ask_pricerange(state)
-        if state["state" == "food-affirm"]:
+            return ask_pricerange(state)
+        if state["state"] == "food-affirm":
             state["foodtype"] = ""
-            ask_foodtype(state)
-        if state["state" == "area-affirm"]:
+            return ask_foodtype(state)
+        if state["state"] == "area-affirm":
             state["area"] = ""
-            ask_area(state)
+            return ask_area(state)
     else:
-        ask_again(state)
+        return ask_again(state)
 
 
 # TODO
@@ -194,7 +202,6 @@ def restaurant_suggested(state, da, utterance):
             if word != "":
                 state["foodtype"] = word
                 return suggest_restaurant(state)
-
 
     return (state, "")
 
@@ -244,8 +251,6 @@ def suggest_restaurant(state):
 
 # TODO some of these parts arent built into the currently running code
 def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
-
-
     if dialog_act == "inform":
 
         if foodtype != "" and area != "" and pricerange != "":
