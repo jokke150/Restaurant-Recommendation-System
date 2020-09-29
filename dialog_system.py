@@ -207,9 +207,11 @@ def restaurant_suggested(state, da, utterance):
     if da == "request":
         word = w_m.closest_word(split, requests)
         if word == "phone" or word == "number":
-            subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
+            subframe = df[(df["restaurantname"] == state["restaurant"])]
             restaurant = subframe[:1]
             name = restaurant["restaurantname"].iloc[0]
+            number = restaurant["phone"].iloc[0]
+            return (state,"The number of " + name + " is: " + number)
 
 
     return (state, "")
@@ -228,9 +230,7 @@ def suggest_restaurant(state):
     pricerange = state["pricerange"]
 
     subframe = df[(df["food"] == foodtype) & (df["area"] == area) & (df["pricerange"] == pricerange)]
-    print(subframe)
     restaurant = subframe[:1]
-    print(restaurant)
     if len(subframe) == 0:
         if len(df[(df["food"] == foodtype) & (df["area"] == area)]) != 0:
             restaurant = df[(df["food"] == foodtype) & (df["area"] == area)][:1]
