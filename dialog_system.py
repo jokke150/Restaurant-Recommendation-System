@@ -101,63 +101,36 @@ def pricerange(state, da, utterance):
     if (da == "inform"):
         if utterance == "any":
             state["pricerange"] = "any"
-            if state["area"] == "":
-                return ask_area(state)
-            elif state["foodtype"] == "":
-                return ask_foodtype(state)
-            else:
-                return suggest_restaurant(state)
+            return state_check(state)
         if state["pricerange"] == "":
-            for word in w_m.matched_words_in_split(utterance.split(), ranges):
+            word = w_m.closest_word(utterance.split(), ranges)
+            if word != "":
                 state["pricerange"] = word
-                if state["area"] == "":
-                    return ask_area(state)
-                elif state["foodtype"] == "":
-                    return ask_foodtype(state)
-                else:
-                    return suggest_restaurant(state)
+                return state_check(state)
 
 
 def foodtype(state, da, utterance):
     if (da == "inform"):
         if utterance == "any":
             state["foodtype"] = "any"
-            if state["pricerange"] == "":
-                return ask_pricerange(state)
-            elif state["area"] == "":
-                return ask_area(state)
-            else:
-                return suggest_restaurant(state)
+            return state_check(state)
         if state["foodtype"] == "":
-            for word in w_m.matched_words_in_split(utterance.split(), cuisines):
+            word = w_m.closest_word(utterance.split(), cuisines)
+            if word != "":
                 state["foodtype"] = word
-                if state["pricerange"] == "":
-                    return ask_pricerange(state)
-                elif state["area"] == "":
-                    return ask_area(state)
-                else:
-                    return suggest_restaurant(state)
+                return state_check(state)
 
 
 def area(state, da, utterance):
     if (da == "inform"):
         if utterance == "any":
             state["area"] = "any"
-            if state["pricerange"] == "":
-                return ask_pricerange(state)
-            elif state["foodtype"] == "":
-                return ask_foodtype(state)
-            else:
-                return suggest_restaurant(state)
+            return state_check(state)
         if state["area"] == "":
-            for word in w_m.matched_words_in_split(utterance.split(), locations):
+            word = w_m.closest_word(utterance.split(), locations)
+            if word != "":
                 state["area"] = word
-                if state["pricerange"] == "":
-                    return ask_pricerange(state)
-                elif state["foodtype"] == "":
-                    return ask_foodtype(state)
-                else:
-                    return suggest_restaurant(state)
+                return state_check(state)
 
 
 def request_price_affirm(state):
@@ -191,6 +164,25 @@ def affirm(state, da, utterance):
 
 # TODO
 def restaurant_suggested(state, da, utterance):
+    split = utterance.split()
+    if da == "reqalts":
+        print("IN REQALTS")
+        if state["area"] != "":
+            word = w_m.closest_word(split, locations)
+            if word != "":
+                state["area"] = word
+                return suggest_restaurant(state)
+        if state["pricerange"] != "":
+            word = w_m.closest_word(split, ranges)
+            if word != "":
+                state["pricerange"] = word
+                return suggest_restaurant(state)
+        if state["foodtype"] != "":
+            word = w_m.closest_word(split, cuisines)
+            if word != "":
+                state["foodtype"] = word
+                return suggest_restaurant(state)
+
 
     return (state, "")
 
@@ -240,28 +232,7 @@ def suggest_restaurant(state):
 
 # TODO some of these parts arent built into the currently running code
 def input_output_match(text, dialog_act, foodtype, area, pricerange, topic):
-    split = text.split()
 
-    if dialog_act == "reqalts":
-
-        print("IN REQALTS")
-        # If foodtype was known but a new foodtype preference is expressed, save this new one
-        if foodtype != "":
-            for word in w_m.matched_words_in_split(split, cuisines):
-                foodtype = word
-                return suggest_restaurant(foodtype, area, pricerange)
-
-        # If foodtype area was known but a new area preference is expressed, save this new one
-        if area != "":
-            for word in w_m.matched_words_in_split(split, locations):
-                area = word
-                return suggest_restaurant(foodtype, area, pricerange)
-
-        # If pricerange was known but a new foodtype preference is expressed, save this new one
-        if pricerange != "":
-            for word in w_m.matched_words_in_split(split, ranges):
-                pricerange = word
-                return suggest_restaurant(foodtype, area, pricerange)
 
     if dialog_act == "inform":
 
