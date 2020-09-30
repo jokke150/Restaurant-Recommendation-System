@@ -35,6 +35,7 @@ def input_output(state, utterance):
         "restaurant-suggested": restaurant_suggested,
         "alt-restaurant-suggested": alt_restaurant_suggested,
         "restaurant-options": restaurant_options,
+        "preference-options": preference_options,
     }
     # Get the function from switcher dictionary
     func = switcher.get(state["state"], lambda: (state, "State not defined"))
@@ -116,11 +117,10 @@ def set_pricerange(state, da, utterance):
         if utterance == "any":
             state["pricerange"] = "any"
             return state_check(state)
-        if state["pricerange"] is None:
-            word = closest_word(utterance.split(), price_ranges)
-            if word is not None:
-                state["pricerange"] = word
-                return state_check(state)
+        word = closest_word(utterance.split(), price_ranges)
+        if word is not None:
+            state["pricerange"] = word
+            return state_check(state)
 
     # TODO: Ask again in case no other return fires?
     return ask_again(state)
@@ -132,12 +132,10 @@ def set_foodtype(state, da, utterance):
         if utterance == "any":
             state["foodtype"] = "any"
             return state_check(state)
-        if state["foodtype"] is None:
-            word = closest_word(utterance.split(), food_types)
-            if word is not None:
-                state["foodtype"] = word
-
-                return state_check(state)
+        word = closest_word(utterance.split(), food_types)
+        if word is not None:
+            state["foodtype"] = word
+            return state_check(state)
 
     # TODO: Ask again in case no other return fires?
     return ask_again(state)
@@ -149,11 +147,10 @@ def set_area(state, da, utterance):
         if utterance == "any":
             state["area"] = "any"
             return state_check(state)
-        if state["area"] is None:
-            word = closest_word(utterance.split(), areas)
-            if word is not None:
-                state["area"] = word
-                return state_check(state)
+        word = closest_word(utterance.split(), areas)
+        if word is not None:
+            state["area"] = word
+            return state_check(state)
 
     # TODO: Ask again in case no other return fires?
     return ask_again(state)
@@ -333,21 +330,21 @@ def restaurant_check(state):
         for i in range(0, len(alternatives)):
             pref, alt = alternatives[i]
             name, foodtype, area, pricerange = restaurant_info(alt)
-            options += "- " + str(i) + ": restaurant " + name + " serving " + foodtype + " food in " + area + \
-                       " part of town for" + pricerange + " price.\n"
+            options += str(i) + ": restaurant " + name + " serving " + foodtype + " food in " + area + \
+                       " part of town for " + pricerange + " price.\n"
 
         state["alternatives"] = alternatives
         state["state"] = "restaurant-options"
         state["pref_changed"] = pref_changed
-        return state, "There are no restaurants with your current set of preferences.\n" +\
-                "These are a couple of alternatives:\n" + options + "Type a number to choose an alternative.\n" +\
-                "Anything else to change your preferences."
+        return state, "There are no restaurants with your current set of preferences.\n" + \
+               "These are a couple of alternatives:\n" + options + "Type a number to choose an alternative.\n" + \
+               "Type anything else to change your preferences."
     if len(restaurants) == 1:
         restaurant = restaurants.iloc[0]
         name, foodtype, area, pricerange = restaurant_info(restaurant)
         state["state"] = "restaurant-suggested"
-        return state, "This is the only restaurant with your current preferences is " + name + "in the " + area +\
-                " of the city and serves " + foodtype + " in the " + pricerange
+        return state, "This is the only restaurant with your current preferences is " + name + "in the " + area + \
+               " of the city and serves " + foodtype + " in the " + pricerange
 
     return state_check(state)
 
@@ -369,3 +366,46 @@ def restaurant_options(state, da, utterance):
                 return state, "You chose: \n" + str(name) + " in the " + str(area) + \
                        " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
                        " price range"
+
+    prefs = types_to_change(state)
+    string = ""
+    for i in range(0, len(prefs)):
+        string += str(i) + ": " + str(prefs[i]) + "\n"
+    state["state"] = "preference-options"
+    return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
+
+
+def types_to_change(state):
+    foodtype = state["foodtype"]
+    area = state["area"]
+    pricerange = state["pricerange"]
+
+    types_to_change = []
+    if foodtype is not None and foodtype != "any" and state["confirmed_foodtype"]:
+        types_to_change.append("foodtype")
+    if area is not None and area != "any" and state["confirmed_area"]:
+        types_to_change.append("area")
+    if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
+        types_to_change.append("pricerange")
+
+    return types_to_change
+
+
+def preference_options(state, da, utterance):
+    split = utterance.split()
+
+    for sp in split:
+        if represents_int(sp):
+            res_nr = int(sp)
+            prefs = types_to_change(state)
+            if len(prefs) > res_nr:
+                pref = prefs[res_nr]
+                state["state"] = "restaurant-suggested"
+                if pref == "pricerange":
+                    return ask_pricerange(state)
+                elif pref == "foodtype":
+                    return ask_foodtype(state)
+                else:
+                    return ask_area(state)
+
+    return state, "Please give a number that corresponds to a preference."

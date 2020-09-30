@@ -26,12 +26,13 @@ def find_alternative_preference_by_type(state,preference_type):
             if state[preference_type] in priceset:
                 alternative_prices.extend(priceset)
                 alternative_prices.remove(state[preference_type])
-        return alternative_prices
+        return list(dict.fromkeys(alternative_prices))
+    alternative_area = []
     for locationset in location:
         if state[preference_type] in locationset:
-            alternative_area = locationset
+            alternative_area.extend(locationset)
             alternative_area.remove(state[preference_type])
-            return alternative_area
+    return list(dict.fromkeys(alternative_area))
 
 def find_alternative_preferences(state):
     return find_alternative_preference_by_type(state, state["last-confirmed"])
