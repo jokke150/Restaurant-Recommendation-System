@@ -15,6 +15,9 @@ add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first
 inference_rules = init_inference_rules()
 
 
+
+
+
 def input_output(state, utterance):
     dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
 
@@ -70,7 +73,6 @@ def start_information_gathering(state, da, utterance):
                 state["area"] = word
         # Check if the pricerange is unknown but mentioned by the user
         if state["pricerange"] is None:
-
             word = closest_word(split, price_ranges)
             if word is not None:
                 state["pricerange"] = word
@@ -322,8 +324,9 @@ def suggest_restaurant(state):
                                                                                                                 "the " +
                     area + " part of town, but is in the " + pricerange + " pricerange.")
 
-        state["state"] = "end"
+        state["state"] = ""
         return (state, "Sorry no restaurant with your preferences")
+
 
     name, foodtype, area, pricerange = restaurant_info(restaurant)
     state["state"] = "restaurant-suggested"
