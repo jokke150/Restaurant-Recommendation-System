@@ -25,18 +25,19 @@ def choose_closest_word(word, words):
         else:
             return closest_distance, closest_words[0]
 
+
 def get_2_word_list(split):
     list = []
-    for i in range(0,len(split)-1):
-        list.append(split[i] + " " + split[i+1])
+    for i in range(0, len(split) - 1):
+        list.append(split[i] + " " + split[i + 1])
     return list
 
-def matched_words_in_split(split, words):
 
+def matched_words_in_split(split, words):
     mp = map(lambda x: choose_closest_word(x, words), split)
-    lst = list(filter(lambda x: x != None, mp))
+    lst = list(filter(lambda x: x is not None, mp))
     mp2 = map(lambda x: choose_closest_word(x, words), get_2_word_list(split))
-    lst2 = list(filter(lambda x: x != None, mp2))
+    lst2 = list(filter(lambda x: x is not None, mp2))
     lst.extend(lst2)
     lst.sort(key=take_first)
     return list(map(lambda x: take_second(x), lst))
