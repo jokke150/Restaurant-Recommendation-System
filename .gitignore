@@ -1,6 +1,6 @@
 # Custom
 data/glove.6B.100d.txt
-
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
