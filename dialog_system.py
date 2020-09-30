@@ -1,7 +1,6 @@
-import word_matching as w_m
+from word_matching import closest_word
 from inference_rules import init_inference_rules, evaluate_inference_rules
-import exercise1a as main
-from learners.neural_net import load_nn
+from learners.neural_net import load_nn, predict_nn
 from restaurant_db import get_restaurant_db
 from exercise1a import represents_int
 
@@ -9,11 +8,15 @@ tokenizer, model, label_encoder = load_nn()
 
 restaurant_db, price_ranges, food_types, areas, food_qualities = get_restaurant_db()
 
+# TODO: I treat "long time" and "busy" as hidden features the user cannot query for - is this acceptable?
+add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first date",
+            "business meeting"]
+
 inference_rules = init_inference_rules()
 
 
 def input_output(state, utterance):
-    dialog_act = main.predict_nn(utterance, tokenizer, model, label_encoder)
+    dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
 
     if dialog_act == "bye":
         state["state"] = "end"
@@ -21,12 +24,13 @@ def input_output(state, utterance):
 
     switcher = {
         "start": start_information_gathering,
-        "pricerange": pricerange,
+        "pricerange": set_pricerange,
         "price-affirm": affirm,
-        "foodtype": foodtype,
+        "foodtype": set_foodtype,
         "food-affirm": affirm,
-        "area": area,
+        "area": set_area,
         "area-affirm": affirm,
+        "add-reqs": set_add_reqs,
         "restaurant-suggested": restaurant_suggested,
         "alt-restaurant-suggested": alt_restaurant_suggested,
     }
@@ -36,45 +40,47 @@ def input_output(state, utterance):
     return func(state, dialog_act, utterance)
 
 
+def state_check(state):
+    if state["pricerange"] is not None and not state["confirmed_pricerange"]:
+        return request_price_affirm(state)
+    elif state["foodtype"] is not None and not state["confirmed_foodtype"]:
+        return request_food_affirm(state)
+    elif state["area"] is not None and not state["confirmed_area"]:
+        return request_area_affirm(state)
+    elif state["pricerange"] is None:
+        return ask_pricerange(state)
+    elif state["foodtype"] is None:
+        return ask_foodtype(state)
+    elif state["area"] is None:
+        return ask_area(state)
+    elif state["add_reqs"] is None:
+        return ask_add_reqs(state)
+    else:
+        return suggest_restaurant(state)
+
+
 def start_information_gathering(state, da, utterance):
     split = utterance.split()
 
     if (da == "inform"):
         # Check if the area is unknown but mentioned by the user
-        if state["area"] == "":
-            word = w_m.closest_word(split, areas)
-            if word != "":
+        if state["area"] is None:
+            word = closest_word(split, areas)
+            if word is not None:
                 state["area"] = word
         # Check if the pricerange is unknown but mentioned by the user
-        if state["pricerange"] == "":
+        if state["pricerange"] is None:
 
-            word = w_m.closest_word(split, price_ranges)
-            if word != "":
+            word = closest_word(split, price_ranges)
+            if word is not None:
                 state["pricerange"] = word
         # Check if the foodtype is unknown but mentioned by the user
-        if state["foodtype"] == "":
-            word = w_m.closest_word(split, food_types)
-            if word != "":
+        if state["foodtype"] is None:
+            word = closest_word(split, food_types)
+            if word is not None:
                 state["foodtype"] = word
 
         return state_check(state)
-
-
-def state_check(state):
-    if state["pricerange"] != "" and not state["confirmed_pricerange"]:
-        return request_price_affirm(state)
-    elif state["foodtype"] != "" and not state["confirmed_foodtype"]:
-        return request_food_affirm(state)
-    elif state["area"] != "" and not state["confirmed_area"]:
-        return request_area_affirm(state)
-    elif state["pricerange"] == "":
-        return ask_pricerange(state)
-    elif state["foodtype"] == "":
-        return ask_foodtype(state)
-    elif state["area"] == "":
-        return ask_area(state)
-    else:
-        return suggest_restaurant(state)
 
 
 def ask_pricerange(state):
@@ -94,7 +100,8 @@ def ask_area(state):
 
 def ask_add_reqs(state):
     state["state"] = "add-reqs"
-    return state, "Do you have any other requirements?"
+    options = "\n  - ".join(f"{key}" for key in sorted(add_reqs))
+    return state, f"Do you have any other requirements? Possible options are: \n{options}"
 
 
 def ask_again(state):
@@ -102,46 +109,61 @@ def ask_again(state):
     return state, "I was not able to interpret your answer to my last question. Please rephrase."
 
 
-def pricerange(state, da, utterance):
+def set_pricerange(state, da, utterance):
     if (da == "inform"):
+        # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["pricerange"] = "any"
             return state_check(state)
-        if state["pricerange"] == "":
-            word = w_m.closest_word(utterance.split(), price_ranges)
-            if word != "":
+        if state["pricerange"] is None:
+            word = closest_word(utterance.split(), price_ranges)
+            if word is not None:
                 state["pricerange"] = word
                 return state_check(state)
-            else:
-                return ask_again(state)
+
+    # TODO: Ask again in case no other return fires?
+    return ask_again(state)
 
 
-def foodtype(state, da, utterance):
+def set_foodtype(state, da, utterance):
     if (da == "inform"):
+        # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["foodtype"] = "any"
             return state_check(state)
-        if state["foodtype"] == "":
-            word = w_m.closest_word(utterance.split(), food_types)
-            if word != "":
+        if state["foodtype"] is None:
+            word = closest_word(utterance.split(), food_types)
+            if word is not None:
                 state["foodtype"] = word
                 return state_check(state)
-            else:
-                return ask_again(state)
+
+    # TODO: Ask again in case no other return fires?
+    return ask_again(state)
 
 
-def area(state, da, utterance):
+def set_area(state, da, utterance):
     if (da == "inform"):
+        # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["area"] = "any"
             return state_check(state)
-        if state["area"] == "":
-            word = w_m.closest_word(utterance.split(), areas)
-            if word != "":
+        if state["area"] is None:
+            word = closest_word(utterance.split(), areas)
+            if word is not None:
                 state["area"] = word
                 return state_check(state)
-            else:
-                return ask_again(state)
+
+    # TODO: Ask again in case no other return fires?
+    return ask_again(state)
+
+
+def set_add_reqs(state, da, utterance):
+    if (da == "inform"):
+        # TODO
+        # word = closest_word(utterance.split(), areas)
+        return
+
+    # TODO: How to handle deny and negate?
 
 
 def request_price_affirm(state):
@@ -170,16 +192,37 @@ def affirm(state, da, utterance):
         return state_check(state)
     elif da == "deny" or da == "negate":
         if state["state"] == "price-affirm":
-            state["pricerange"] = ""
+            state["pricerange"] = None
             return ask_pricerange(state)
         if state["state"] == "food-affirm":
-            state["foodtype"] = ""
+            state["foodtype"] = None
             return ask_foodtype(state)
         if state["state"] == "area-affirm":
-            state["area"] = ""
+            state["area"] = None
             return ask_area(state)
     else:
         return ask_again(state)
+
+
+def apply_add_reqs(state, da, utterance):
+    requirements = state["add_reqs"]
+    # TODO: Allow user to negate requirements?
+    print(f"Your additional requirements are: {', '.join(f'{key}' for key in requirements.keys())}.")
+
+    # TODO: Add restaurant alternatives to state?
+    restaurants = restaurants_given_state(state)
+
+    filtered = []
+    for restaurant in restaurants:
+        consequents = evaluate_inference_rules(restaurant, inference_rules)
+        if requirements.items() <= consequents.items():
+            filtered.append(restaurant)
+            print(f'Restaurant "{restaurant["restaurantname"]}" complies with all of your requirements.')
+        else:
+            unsatisfied = []
+            for requirement, true in requirements:
+                # TODO
+                return
 
 
 def restaurant_info(restaurant):
@@ -231,17 +274,17 @@ def restaurant_suggested(state, da, utterance):
         restaurant = subframe.iloc[0]
         name = restaurant["restaurantname"]
 
-        word = w_m.closest_word(split, ["phone", "number"])
+        word = closest_word(split, ["phone", "number"])
         if word == "phone" or word == "number":
             number = restaurant["phone"]
             string += "The number is: " + number + "\n"
 
-        word = w_m.closest_word(split, ["postcode", "post", "code"])
+        word = closest_word(split, ["postcode", "post", "code"])
         if word == "postcode" or word == "post" or word == "code":
             postcode = restaurant["postcode"]
             string += "The postcode is " + postcode + "\n"
 
-        word = w_m.closest_word(split, ["address"])
+        word = closest_word(split, ["address"])
         if word == "address":
             address = restaurant["addr"]
             string += "The address is " + address

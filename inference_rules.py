@@ -28,7 +28,7 @@ class InferenceRule:
 def evaluate_inference_rules(restaurant, rules):
     print("Evaluating rules")
 
-    info = restaurant.copy()
+    consequents = restaurant.copy()
 
     rule_fired = True
     iteration = 0
@@ -36,16 +36,16 @@ def evaluate_inference_rules(restaurant, rules):
         rule_fired = False
         iteration += 1
         for rule in sorted(rules):
-            consequent, true = rule.evaluate(info)
+            consequent, true = rule.evaluate(consequents)
             # Only activate first rule in case of a clash
             # TODO: Use rule confidence parameter for clashing rules
-            if consequent is not None and consequent not in info:
-                info[consequent] = true
+            if consequent is not None and consequent not in consequents:
+                consequents[consequent] = true
                 rule_fired = True
                 # TODO: Present the reasoning steps and the conclusion (i.e., the restaurant does/does not satisfy the
                 #  additional requirements) to the user ... in a better way (like natural language)
                 print(f"Iteration {iteration}: {rule}")
-    return info
+    return consequents
 
 
 def init_inference_rules():
@@ -71,6 +71,7 @@ def init_inference_rules():
     return rules
 
 
+# TODO: REMOVE LATER ON
 if __name__ == '__main__':
     # how to use
     rules = init_inference_rules()

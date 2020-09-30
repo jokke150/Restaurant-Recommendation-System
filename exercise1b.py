@@ -7,17 +7,18 @@ if __name__ == '__main__':
           "You can ask for restaurants by area, price range, or food type.\n"
           "How may I help you?")
 
-    state = {"state": "start", "foodtype": "", "confirmed_foodtype": False, "pricerange": "",
-             "confirmed_pricerange": False, "area": "", "confirmed_area": False, "restaurant": "",
-             "alternative_counter": int(0)}
+    state = {"state": "start", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
+             "confirmed_pricerange": False, "area": None, "confirmed_area": False, "restaurant": None,
+             "add_reqs": None, "alternative_counter": int(0)}
 
     while not (state["state"] == "end"):  # Shouldn't the communication only end after bye?
         inp = input().lower()
         state, reply = input_output(state, inp)
 
-        print("State: " + state["state"] + ",\n Area: " + state["area"] + " Confirmed: " + str(
-            state["confirmed_area"]) + ",\n Foodtype: " + state[
-                  "foodtype"] + " Confirmed: " + str(state["confirmed_foodtype"]) + ",\n Pricerange: " + state[
-                  "pricerange"] + " Confirmed: " + str(state["confirmed_pricerange"]) + ",\n Alt_nr: " + str(state[
-                  "alternative_counter"]))
+        # TODO: Add add_reqs
+        print(f'State: {state["state"]},\n '
+              f'Area: {str(state["area"])} (Confirmed: {state["confirmed_area"]}),\n '
+              f'Foodtype: {str(state["foodtype"])} (Confirmed: {state["confirmed_foodtype"]}) \n '
+              f'Pricerange: {str(state["pricerange"])} (Confirmed: {state["confirmed_pricerange"]})\n'
+              f'Alt_nr: {str(state["alternative_counter"])}')
         print(reply)
