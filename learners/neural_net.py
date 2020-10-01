@@ -4,7 +4,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import pickle
-
+from sklearn.utils import class_weight
 from scipy.odr import Model
 from tensorflow import keras
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -20,6 +20,15 @@ num_words = 1000
 
 
 def train_nn(x_train, x_test, y_test, y_train):
+    
+      
+    #Add class weights to deal with unbalanced distribution of labels
+    class_weights = class_weight.compute_class_weight('balanced',
+                                                 np.unique(y_train),
+                                                 y_train)
+    
+    dictionary_weights = dict(enumerate(class_weights))
+    
     # Tokenize our training data
     tokenizer = Tokenizer(num_words=num_words, oov_token='<UNK>')
     tokenizer.fit_on_texts(x_train)
@@ -32,7 +41,8 @@ def train_nn(x_train, x_test, y_test, y_train):
     # Pad the sequences
     x_train = pad_sequences(x_train, padding='post', truncating='post', maxlen=max_words)
     x_test = pad_sequences(x_test, padding='post', truncating='post', maxlen=max_words)
-
+    
+    
     # Hot-encode labels
     num_classes = 15
     label_encoder = LabelEncoder()
@@ -40,6 +50,8 @@ def train_nn(x_train, x_test, y_test, y_train):
     y_test = label_encoder.transform(y_test)
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
+    
+    
 
     # prepare GloVe embeddings
     embeddings_index = {}
@@ -85,7 +97,7 @@ def train_nn(x_train, x_test, y_test, y_train):
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2)
+    model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2, class_weight=dictionary_weights)
 
     score = model.evaluate(x_test, y_test, batch_size=128, verbose=1)
     print('Test loss:', score[0])
