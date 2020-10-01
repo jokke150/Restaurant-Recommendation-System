@@ -1,4 +1,5 @@
 from word_matching import take_second
+from restaurant_db import restaurant_db
 
 price = [["cheap", "moderate"], ["moderate", "expensive"]]
 location = [["centre", "north", "west"],
@@ -38,19 +39,13 @@ def find_alternative_preference_by_type(state, preference_type):
 def find_alternative_preferences(state):
     return find_alternative_preference_by_type(state, state["last-confirmed"])
 
-
-# TODO: Why not just use .copy() ?
 def new_state(state, pref):
-    state2 = {"task": state["task"], "foodtype": state["foodtype"], "confirmed_foodtype": state["confirmed_foodtype"],
-              "pricerange": state["pricerange"], "confirmed_pricerange": state["confirmed_pricerange"],
-              "area": state["area"], "confirmed_area": state["confirmed_area"], "restaurant": state["restaurant"],
-              "add_reqs": state["add_reqs"], "alternative_counter": state["alternative_counter"],
-              "last-confirmed": state["last-confirmed"]}
+    state2 = state.copy()
     state2[state["last-confirmed"]] = pref
     return state2
 
 
-def find_alternative_restaurants(state, restaurant_db):
+def find_alternative_restaurants(state):
     alt_prefs = find_alternative_preferences(state)
     mp = map(lambda x:
              (x, find_alternative_restaurant(new_state(state, x), restaurant_db)),

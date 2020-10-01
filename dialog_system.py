@@ -1,19 +1,18 @@
 from word_matching import closest_word
-from inference_rules import init_inference_rules, evaluate_inference_rules
 from learners.neural_net import load_nn, predict_nn
-from restaurant_db import get_restaurant_db
 from exercise1a import represents_int
 from alternative_rules import find_alternative_restaurants
+from restaurant_db import food_types, areas, food_qualities, price_ranges, restaurants_given_state, restaurant_info, restaurant_by_name
 
 tokenizer, model, label_encoder = load_nn()
 
-restaurant_db, price_ranges, food_types, areas, food_qualities = get_restaurant_db()
+
 
 # TODO: I treat "long time" and "busy" as hidden features the user cannot query for - is this acceptable?
 add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first date",
             "business meeting"]
 
-inference_rules = init_inference_rules()
+
 
 
 def input_output(state, utterance):
@@ -224,70 +223,15 @@ def affirm(state, da, utterance):
         return ask_again(state)
 
 
-# TODO: Use this everywhere options need to be printed - DRY!
-def print_restaurant_options(restaurants):
-    for num, restaurant in enumerate(restaurants, start=1):
-        print(f"{num}: {restaurant['name'].capitalize()} \t- food: {restaurant['foodtype']} "
-              f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
 
-
-def filter_by_add_reqs(restaurants, requirements):
-    if not requirements:
-        return restaurants
-    else:
-        print("The following restaurants will be checked for your additional requirements:")
-        print_restaurant_options(restaurants)
-
-        print(f"\nYour additional requirements are: {', '.join(f'{key}' for key in requirements.keys())}.")
-
-        filtered = []
-        for restaurant in restaurants:
-            consequents = evaluate_inference_rules(restaurant, inference_rules)
-
-            # We only look at requirements which can be met by a restaurant (true consequents)
-            met_requirements = [req for req, true in consequents if true]
-
-            if requirements <= met_requirements:
-                filtered.append(restaurant)
-                print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your requirements.')
-            else:
-                unsatisfied = []
-                for requirement in requirements:
-                    if requirement not in met_requirements:
-                        unsatisfied.append(requirement)
-                print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following requirements:'
-                      f'\n{" ".join(f"{req}" for req in unsatisfied)}')
-
-        return filtered
-
-
-def restaurant_info(restaurant):
-    return (restaurant["restaurantname"], restaurant["food"], restaurant["area"],
-            restaurant["pricerange"])
-
-
-def restaurants_given_state(state):
-    foodtype = state["foodtype"]
-    area = state["area"]
-    pricerange = state["pricerange"]
-
-    restaurants = restaurant_db
-    if foodtype is not None and foodtype != "any" and state["confirmed_foodtype"]:
-        restaurants = restaurants[(restaurants["food"] == foodtype)]
-    if area is not None and area != "any" and state["confirmed_area"]:
-        restaurants = restaurants[(restaurants["area"] == area)]
-    if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
-        restaurants = restaurants[(restaurants["pricerange"] == pricerange)]
-
-    return filter_by_add_reqs(restaurants, state["add_reqs"])
 
 
 def restaurant_check(state):
     restaurants = restaurants_given_state(state)
 
     if len(restaurants) == 0:
-        # TODO: What happens if we find no alternative? Shouldn't we loop here to get less and less restrictive?
-        pref_changed, alternatives = find_alternative_restaurants(state, restaurant_db)
+        # TODO: What happens if we find no alternative? Shouldn't we loop here to get less and less restrictive? This c
+        pref_changed, alternatives = find_alternative_restaurants(state)
         options = ""
         for i in range(0, len(alternatives)):
             pref, alt = alternatives[i]
@@ -324,10 +268,8 @@ def restaurant_suggested(state, da, utterance):
         return suggest_alternatives(state)
     if da == "request":
         string = ""
-
-        subframe = restaurant_db[(restaurant_db["restaurantname"] == state["restaurant"])]
-        restaurant = subframe.iloc[0]
-        name = restaurant["restaurantname"]
+        name = state["restaurant"]
+        restaurant = restaurant_by_name(name)
 
         word = closest_word(split, ["phone number", "number"])
         if word == "phone number" or word == "number":
