@@ -55,7 +55,8 @@ def filter_by_add_reqs(restaurants, requirements):
         print(f"\nYour additional requirements are: {', '.join(f'{req}' for req in requirements)}")
 
         filtered = []
-        for restaurant in restaurants:
+        for i in range(0, len(restaurants)):
+            restaurant = restaurants.iloc[i]
             consequents = evaluate_inference_rules(restaurant, inference_rules)
 
             # We only look at requirements which can be met by a restaurant (true consequents)
