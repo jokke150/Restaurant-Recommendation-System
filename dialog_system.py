@@ -1,7 +1,7 @@
 from word_matching import closest_word
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
-from alternative_rules import find_alternative_restaurants
+from alternative_rules import find_alternative_restaurants, types_to_change
 from restaurant_db import food_types, areas, food_qualities, price_ranges, restaurants_given_state, restaurant_info, restaurant_by_name
 
 tokenizer, model, label_encoder = load_nn()
@@ -230,7 +230,6 @@ def restaurant_check(state):
     restaurants = restaurants_given_state(state)
 
     if len(restaurants) == 0:
-        # TODO: What happens if we find no alternative? Shouldn't we loop here to get less and less restrictive? This c
         pref_changed, alternatives = find_alternative_restaurants(state)
         options = ""
         for i in range(0, len(alternatives)):
@@ -354,20 +353,6 @@ def restaurant_options(state, da, utterance):
     return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
 
 
-def types_to_change(state):
-    foodtype = state["foodtype"]
-    area = state["area"]
-    pricerange = state["pricerange"]
-
-    types_to_change = []
-    if foodtype is not None and foodtype != "any" and state["confirmed_foodtype"]:
-        types_to_change.append("foodtype")
-    if area is not None and area != "any" and state["confirmed_area"]:
-        types_to_change.append("area")
-    if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
-        types_to_change.append("pricerange")
-
-    return types_to_change
 
 
 def preference_options(state, da, utterance):
