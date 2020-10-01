@@ -208,7 +208,7 @@ def affirm(state, da, utterance):
             state["confirmed_area"] = True
         elif state["task"] == "add-reqs-affirm":
             state["confirmed_add_reqs"] = True
-        return state_check(state)
+        return restaurant_check(state)
     elif da == "deny" or da == "negate":
         if state["task"] == "price-affirm":
             state["pricerange"] = None
@@ -254,7 +254,7 @@ def restaurant_check(state):
 
 def suggest_restaurant(state, restaurants):
     # TODO: Only suggest the first restaurant?
-    restaurant = restaurants[0]
+    restaurant = restaurants.iloc[0]
     name, foodtype, area, pricerange = restaurant_info(restaurant)
     state["task"] = "restaurant-suggested"
     state["restaurant"] = name
@@ -381,10 +381,13 @@ def preference_options(state, da, utterance):
                 pref = prefs[res_nr]
                 state["task"] = "restaurant-suggested"
                 if pref == "pricerange":
+                    state["confirmed_pricerange"] = False
                     return ask_pricerange(state)
                 elif pref == "foodtype":
+                    state["confirmed_foodtype"] = False
                     return ask_foodtype(state)
                 else:
+                    state["confirmed_area"] = False
                     return ask_area(state)
 
     return state, "Please give a number that corresponds to a preference."

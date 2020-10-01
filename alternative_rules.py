@@ -1,5 +1,5 @@
 from word_matching import take_second
-from restaurant_db import restaurant_db
+from restaurant_db import restaurants_given_state
 
 price = [["cheap", "moderate"], ["moderate", "expensive"]]
 location = [["centre", "north", "west"],
@@ -48,26 +48,14 @@ def new_state(state, pref):
 def find_alternative_restaurants(state):
     alt_prefs = find_alternative_preferences(state)
     mp = map(lambda x:
-             (x, find_alternative_restaurant(new_state(state, x), restaurant_db)),
+             (x, find_alternative_restaurant(new_state(state, x))),
              alt_prefs)
     lst = list(filter(lambda x: take_second(x) is not None, mp))
     return state["last-confirmed"], lst
 
 
-def find_alternative_restaurant(state, restaurant_db):
-    foodtype = state["foodtype"]
-    area = state["area"]
-    pricerange = state["pricerange"]
-
-    # TODO: Drop additional requirements?
-
-    restaurants = restaurant_db
-    if foodtype is not None and foodtype != "any" and state["confirmed_foodtype"]:
-        restaurants = restaurants[(restaurants["food"] == foodtype)]
-    if area is not None and area != "any" and state["confirmed_area"]:
-        restaurants = restaurants[(restaurants["area"] == area)]
-    if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
-        restaurants = restaurants[(restaurants["pricerange"] == pricerange)]
+def find_alternative_restaurant(state):
+    restaurants = restaurants_given_state(state)
     if len(restaurants) > 0:
         return restaurants.iloc[0]
     return None

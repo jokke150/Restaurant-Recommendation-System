@@ -79,8 +79,8 @@ def filter_by_add_reqs(restaurants, requirements):
 def print_restaurant_options(restaurants):
 
     for num in range(0, len(restaurants)):
-        restaurant = restaurants.iloc(num)
-        print(f"{num + 1}: {restaurant['name'].capitalize()} \t- food: {restaurant['foodtype']} " +
+        restaurant = restaurants.iloc[num]
+        print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} \t- food: {restaurant['food']} " +
               f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
 
 
