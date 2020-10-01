@@ -20,7 +20,7 @@ def input_output(state, utterance):
     dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
 
     if dialog_act == "bye":
-        state["state"] = "end"
+        state["task"] = "end"
         return state, "Goodbye, enjoy your meal!"
 
     switcher = {
@@ -32,34 +32,38 @@ def input_output(state, utterance):
         "area": set_area,
         "area-affirm": affirm,
         "add-reqs": set_add_reqs,
+        "add-reqs-affirm": affirm,
         "restaurant-suggested": restaurant_suggested,
         "alt-restaurant-suggested": alt_restaurant_suggested,
         "restaurant-options": restaurant_options,
         "preference-options": preference_options,
     }
     # Get the function from switcher dictionary
-    func = switcher.get(state["state"], lambda: (state, "State not defined"))
+    func = switcher.get(state["task"], lambda: (state, "State not defined"))
 
     return func(state, dialog_act, utterance)
 
 
 def state_check(state):
+    # TODO: Add general affirm in which multiple things can be confirmed at once?
     if state["pricerange"] is not None and not state["confirmed_pricerange"]:
         return request_price_affirm(state)
     elif state["foodtype"] is not None and not state["confirmed_foodtype"]:
         return request_food_affirm(state)
     elif state["area"] is not None and not state["confirmed_area"]:
         return request_area_affirm(state)
+    elif state["add_reqs"] is not None and not state["confirmed_add_reqs"]:
+        return request_add_reqs_affirm(state)
     elif state["pricerange"] is None:
         return ask_pricerange(state)
     elif state["foodtype"] is None:
         return ask_foodtype(state)
     elif state["area"] is None:
         return ask_area(state)
-    # elif state["add_reqs"] is None:
-    #    return ask_add_reqs(state)
+    elif state["add_reqs"] is None:
+        return ask_add_reqs(state)
     else:
-        return suggest_restaurant(state)
+        return suggest_restaurant(state, restaurants_given_state(state))
 
 
 def start_information_gathering(state, da, utterance):
@@ -86,22 +90,22 @@ def start_information_gathering(state, da, utterance):
 
 
 def ask_pricerange(state):
-    state["state"] = "pricerange"
+    state["task"] = "pricerange"
     return state, "What price range would you like?"
 
 
 def ask_foodtype(state):
-    state["state"] = "foodtype"
+    state["task"] = "foodtype"
     return state, "What type of food would you like?"
 
 
 def ask_area(state):
-    state["state"] = "area"
+    state["task"] = "area"
     return state, "In what area would you like to look for a restaurant?"
 
 
 def ask_add_reqs(state):
-    state["state"] = "add-reqs"
+    state["task"] = "add-reqs"
     options = "\n  - ".join(f"{key}" for key in sorted(add_reqs))
     return state, f"Do you have any other requirements? Possible options are: \n{options}"
 
@@ -112,7 +116,7 @@ def ask_again(state):
 
 
 def set_pricerange(state, da, utterance):
-    if (da == "inform"):
+    if da == "inform":
         # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["pricerange"] = "any"
@@ -127,7 +131,7 @@ def set_pricerange(state, da, utterance):
 
 
 def set_foodtype(state, da, utterance):
-    if (da == "inform"):
+    if da == "inform":
         # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["foodtype"] = "any"
@@ -142,7 +146,7 @@ def set_foodtype(state, da, utterance):
 
 
 def set_area(state, da, utterance):
-    if (da == "inform"):
+    if da == "inform":
         # TODO: Handle cases like "I don't care"
         if utterance == "any":
             state["area"] = "any"
@@ -157,142 +161,109 @@ def set_area(state, da, utterance):
 
 
 def set_add_reqs(state, da, utterance):
-    if (da == "inform"):
-        # TODO
-        # word = closest_word(utterance.split(), areas)
-        return
+    state["add_reqs"] = []
 
-    # TODO: How to handle deny and negate?
+    if da != "deny" and da != "negate":
+        for req in add_reqs:
+            word = closest_word(utterance.split(), [req])
+            if word is not None:
+                state["add_reqs"].append(req)
+
+    return state_check(state)
 
 
 def request_price_affirm(state):
-    state["state"] = "price-affirm"
+    state["task"] = "price-affirm"
     return state, "Is it correct, that you want a restaurant in the " + state["pricerange"] + " price range?"
 
 
 def request_food_affirm(state):
-    state["state"] = "food-affirm"
+    state["task"] = "food-affirm"
     return state, "Is it correct, that you want a restaurant with " + state["foodtype"] + " cuisine?"
 
 
 def request_area_affirm(state):
-    state["state"] = "area-affirm"
+    state["task"] = "area-affirm"
     return state, "Is it correct, that you want a restaurant in the " + state["area"] + " part of town?"
+
+
+def request_add_reqs_affirm(state):
+    state["task"] = "add-reqs-affirm"
+    if len(state['add_reqs']) == 0:
+        return state, "Is it correct, that you do not have any additional requirements?"
+    else:
+        return state, f"Is it correct, that you have the following additional requirements?" \
+                      f"\n{', '.join(f'{req}' for req in state['add_reqs'])}"
 
 
 def affirm(state, da, utterance):
     if da == "affirm":
-        if state["state"] == "price-affirm":
+        if state["task"] == "price-affirm":
             state["confirmed_pricerange"] = True
             state["last-confirmed"] = "pricerange"
-        if state["state"] == "food-affirm":
+        elif state["task"] == "food-affirm":
             state["last-confirmed"] = "foodtype"
             state["confirmed_foodtype"] = True
-        if state["state"] == "area-affirm":
+        elif state["task"] == "area-affirm":
             state["last-confirmed"] = "area"
             state["confirmed_area"] = True
-        return restaurant_check(state)
+        elif state["task"] == "add-reqs-affirm":
+            state["confirmed_add_reqs"] = True
+        return state_check(state)
     elif da == "deny" or da == "negate":
-        if state["state"] == "price-affirm":
+        if state["task"] == "price-affirm":
             state["pricerange"] = None
             return ask_pricerange(state)
-        if state["state"] == "food-affirm":
+        if state["task"] == "food-affirm":
             state["foodtype"] = None
             return ask_foodtype(state)
-        if state["state"] == "area-affirm":
+        if state["task"] == "area-affirm":
             state["area"] = None
             return ask_area(state)
     else:
         return ask_again(state)
 
 
-def apply_add_reqs(state, da, utterance):
-    requirements = state["add_reqs"]
-    # TODO: Allow user to negate requirements?
-    print(f"Your additional requirements are: {', '.join(f'{key}' for key in requirements.keys())}.")
+# TODO: Use this everywhere options need to be printed - DRY!
+def print_restaurant_options(restaurants):
+    for num, restaurant in enumerate(restaurants, start=1):
+        print(f"{num}: {restaurant['name'].capitalize()} \t- food: {restaurant['foodtype']} "
+              f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
 
-    # TODO: Add restaurant alternatives to state?
-    restaurants = restaurants_given_state(state)
 
-    filtered = []
-    for restaurant in restaurants:
-        consequents = evaluate_inference_rules(restaurant, inference_rules)
-        if requirements.items() <= consequents.items():
-            filtered.append(restaurant)
-            print(f'Restaurant "{restaurant["restaurantname"]}" complies with all of your requirements.')
-        else:
-            unsatisfied = []
-            for requirement, true in requirements:
-                # TODO
-                return
+def filter_by_add_reqs(restaurants, requirements):
+    if not requirements:
+        return restaurants
+    else:
+        print("The following restaurants will be checked for your additional requirements:")
+        print_restaurant_options(restaurants)
+
+        print(f"\nYour additional requirements are: {', '.join(f'{key}' for key in requirements.keys())}.")
+
+        filtered = []
+        for restaurant in restaurants:
+            consequents = evaluate_inference_rules(restaurant, inference_rules)
+
+            # We only look at requirements which can be met by a restaurant (true consequents)
+            met_requirements = [req for req, true in consequents if true]
+
+            if requirements <= met_requirements:
+                filtered.append(restaurant)
+                print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your requirements.')
+            else:
+                unsatisfied = []
+                for requirement in requirements:
+                    if requirement not in met_requirements:
+                        unsatisfied.append(requirement)
+                print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following requirements:'
+                      f'\n{" ".join(f"{req}" for req in unsatisfied)}')
+
+        return filtered
 
 
 def restaurant_info(restaurant):
     return (restaurant["restaurantname"], restaurant["food"], restaurant["area"],
             restaurant["pricerange"])
-
-
-def alt_restaurant_suggested(state, da, utterance):
-    split = utterance.split()
-    for sp in split:
-        if represents_int(sp):
-            res_nr = int(sp)
-            restaurants = restaurants_given_state(state)
-            if (len(restaurants) > res_nr):
-                state["state"] = "restaurant-suggested"
-                state["alternative_counter"] = res_nr
-                restaurant = restaurants.iloc[res_nr]
-                name, foodtype, area, pricerange = restaurant_info(restaurant)
-                state["restaurant"] = name
-                return state, "You chose: \n" + str(name) + " in the " + str(area) + \
-                       " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
-                       " price range"
-
-    state["state"] = "restaurant-suggested"
-    return state, "The original restaurant is chosen"
-
-
-def restaurant_suggested(state, da, utterance):
-    split = utterance.split()
-    if da == "reqalts":
-        restaurants = restaurants_given_state(state)
-        if len(restaurants) > 1:
-            strn = ""
-            for i in range(0, len(restaurants)):
-                restaurant = restaurants.iloc[i]
-                name, foodtype, area, pricerange = restaurant_info(restaurant)
-                strn += str(i) + ": " + str(name) + " in the " + str(area) + \
-                        " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
-                        " price range" + "\n"
-            state["state"] = "alt-restaurant-suggested"
-            return state, strn + "Choose a number: \nIf you don't want an alternative type anything else."
-        return state, "Sorry, I can't find any alternatives."
-
-    if da == "request":
-        string = ""
-
-        subframe = restaurant_db[(restaurant_db["restaurantname"] == state["restaurant"])]
-        restaurant = subframe.iloc[0]
-        name = restaurant["restaurantname"]
-
-        word = closest_word(split, ["phone number", "number"])
-        if word == "phone number" or word == "number":
-            number = restaurant["phone"]
-            string += "The number is: " + number + "\n"
-
-        word = closest_word(split, ["post code"])
-        if word == "post code":
-            postcode = restaurant["postcode"]
-            string += "The postcode is " + postcode + "\n"
-
-        word = closest_word(split, ["address"])
-        if word == "address":
-            address = restaurant["addr"]
-            string += "The address is " + address
-
-        return state, string
-
-    return state, ""
 
 
 def restaurants_given_state(state):
@@ -308,23 +279,14 @@ def restaurants_given_state(state):
     if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
         restaurants = restaurants[(restaurants["pricerange"] == pricerange)]
 
-    return restaurants
-
-
-def suggest_restaurant(state):
-    restaurants = restaurants_given_state(state)
-    restaurant = restaurants.iloc[0]
-
-    name, foodtype, area, pricerange = restaurant_info(restaurant)
-    state["state"] = "restaurant-suggested"
-    state["restaurant"] = name
-    return (state, str(name) + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
-        foodtype) + " food in the " + str(pricerange) + " price range")
+    return filter_by_add_reqs(restaurants, state["add_reqs"])
 
 
 def restaurant_check(state):
     restaurants = restaurants_given_state(state)
+
     if len(restaurants) == 0:
+        # TODO: What happens if we find no alternative? Shouldn't we loop here to get less and less restrictive?
         pref_changed, alternatives = find_alternative_restaurants(state, restaurant_db)
         options = ""
         for i in range(0, len(alternatives)):
@@ -334,19 +296,94 @@ def restaurant_check(state):
                        " part of town for " + pricerange + " price.\n"
 
         state["alternatives"] = alternatives
-        state["state"] = "restaurant-options"
+        state["task"] = "restaurant-options"
         state["pref_changed"] = pref_changed
         return state, "There are no restaurants with your current set of preferences.\n" + \
                "These are a couple of alternatives:\n" + options + "Type a number to choose an alternative.\n" + \
                "Type anything else to change your preferences."
-    if len(restaurants) == 1:
-        restaurant = restaurants.iloc[0]
-        name, foodtype, area, pricerange = restaurant_info(restaurant)
-        state["state"] = "restaurant-suggested"
-        return state, "This is the only restaurant with your current preferences is " + name + "in the " + area + \
-               " of the city and serves " + foodtype + " in the " + pricerange
+
+    elif len(restaurants) == 1:
+        return suggest_restaurant(state, restaurants)
 
     return state_check(state)
+
+
+def suggest_restaurant(state, restaurants):
+    # TODO: Only suggest the first restaurant?
+    restaurant = restaurants[0]
+    name, foodtype, area, pricerange = restaurant_info(restaurant)
+    state["task"] = "restaurant-suggested"
+    state["restaurant"] = name
+    return (state, str(name) + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
+        foodtype) + " food in the " + str(pricerange) + " price range")
+
+
+def restaurant_suggested(state, da, utterance):
+    split = utterance.split()
+    if da == "reqalts":
+        return suggest_alternatives(state)
+    if da == "request":
+        string = ""
+
+        subframe = restaurant_db[(restaurant_db["restaurantname"] == state["restaurant"])]
+        restaurant = subframe.iloc[0]
+        name = restaurant["restaurantname"]
+
+        word = closest_word(split, ["phone number", "number"])
+        if word == "phone number" or word == "number":
+            number = restaurant["phone"]
+            string += "The number is: " + number + "\n"
+
+        word = closest_word(split, ["post code"])
+
+        if word == "post code":
+            postcode = restaurant["postcode"]
+            string += "The postcode is " + postcode + "\n"
+
+        word = closest_word(split, ["address"])
+        if word == "address":
+            address = restaurant["addr"]
+            string += "The address is " + address
+
+        return state, string
+
+    return state, ""  # TODO: Is this useful?
+
+
+def suggest_alternatives(state):
+    restaurants = restaurants_given_state(state)
+
+    if len(restaurants) > 1:
+        strn = ""
+        for i in range(0, len(restaurants)):
+            restaurant = restaurants.iloc[i]
+            name, foodtype, area, pricerange = restaurant_info(restaurant)
+            strn += str(i) + ": " + str(name) + " in the " + str(area) + \
+                    " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
+                    " price range" + "\n"
+        state["task"] = "alt-restaurant-suggested"
+        return state, strn + "Choose a number: \nIf you don't want an alternative type anything else."
+    return state, "Sorry, I can't find any alternatives."
+
+
+def alt_restaurant_suggested(state, da, utterance):
+    split = utterance.split()
+    for sp in split:
+        if represents_int(sp):
+            res_nr = int(sp)
+            restaurants = restaurants_given_state(state)
+            if (len(restaurants) > res_nr):
+                state["task"] = "restaurant-suggested"
+                state["alternative_counter"] = res_nr
+                restaurant = restaurants.iloc[res_nr]
+                name, foodtype, area, pricerange = restaurant_info(restaurant)
+                state["restaurant"] = name
+                return state, "You chose: \n" + str(name) + " in the " + str(area) + \
+                       " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
+                       " price range"
+
+    state["task"] = "restaurant-suggested"
+    return state, "The original restaurant is chosen"
 
 
 def restaurant_options(state, da, utterance):
@@ -357,7 +394,7 @@ def restaurant_options(state, da, utterance):
             res_nr = int(sp)
             alternatives = state["alternatives"]
             if len(alternatives) > res_nr:
-                state["state"] = "restaurant-suggested"
+                state["task"] = "restaurant-suggested"
                 pref_changed = state["pref_changed"]
                 pref, restaurant = alternatives[res_nr]
                 name, foodtype, area, pricerange = restaurant_info(restaurant)
@@ -371,7 +408,7 @@ def restaurant_options(state, da, utterance):
     string = ""
     for i in range(0, len(prefs)):
         string += str(i) + ": " + str(prefs[i]) + "\n"
-    state["state"] = "preference-options"
+    state["task"] = "preference-options"
     return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
 
 
@@ -400,7 +437,7 @@ def preference_options(state, da, utterance):
             prefs = types_to_change(state)
             if len(prefs) > res_nr:
                 pref = prefs[res_nr]
-                state["state"] = "restaurant-suggested"
+                state["task"] = "restaurant-suggested"
                 if pref == "pricerange":
                     return ask_pricerange(state)
                 elif pref == "foodtype":

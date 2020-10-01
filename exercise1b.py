@@ -7,16 +7,15 @@ if __name__ == '__main__':
           "You can ask for restaurants by area, price range, or food type.\n"
           "How may I help you?")
 
-    state = {"state": "start", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
-             "confirmed_pricerange": False, "area": None, "confirmed_area": False, "restaurant": None,
-             "add_reqs": None, "alternative_counter": int(0), "last-confirmed": ""}
+    state = {"task": "start", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
+             "confirmed_pricerange": False, "area": None, "confirmed_area": False, "confirmed_add_reqs": False,
+             "restaurant": None, "add_reqs": None, "alternative_counter": int(0), "last-confirmed": ""}
 
-    while not (state["state"] == "end"):  # Shouldn't the communication only end after bye?
+    while not (state["task"] == "end"):
         inp = input().lower()
         state, reply = input_output(state, inp)
 
-        # TODO: Add add_reqs
-        print(f'- State: {state["state"]},\n'
+        print(f'- Task: {state["task"]},\n'
               f'- Area: {str(state["area"])} (Confirmed: {state["confirmed_area"]}),\n'
               f'- Foodtype: {str(state["foodtype"])} (Confirmed: {state["confirmed_foodtype"]}) \n'
               f'- Pricerange: {str(state["pricerange"])} (Confirmed: {state["confirmed_pricerange"]})\n'

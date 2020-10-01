@@ -13,7 +13,7 @@ food = [["thai", "chinese", "korean", "vietnamese", "asian oriental"],
         ["international", "modern european", "fusion"]]
 
 
-def find_alternative_preference_by_type(state,preference_type):
+def find_alternative_preference_by_type(state, preference_type):
     if preference_type == "foodtype":
         for foodset in food:
             if state[preference_type] in foodset:
@@ -34,12 +34,14 @@ def find_alternative_preference_by_type(state,preference_type):
             alternative_area.remove(state[preference_type])
     return list(dict.fromkeys(alternative_area))
 
+
 def find_alternative_preferences(state):
     return find_alternative_preference_by_type(state, state["last-confirmed"])
 
 
+# TODO: Why not just use .copy() ?
 def new_state(state, pref):
-    state2 = {"state": state["state"], "foodtype": state["foodtype"], "confirmed_foodtype": state["confirmed_foodtype"],
+    state2 = {"task": state["task"], "foodtype": state["foodtype"], "confirmed_foodtype": state["confirmed_foodtype"],
               "pricerange": state["pricerange"], "confirmed_pricerange": state["confirmed_pricerange"],
               "area": state["area"], "confirmed_area": state["confirmed_area"], "restaurant": state["restaurant"],
               "add_reqs": state["add_reqs"], "alternative_counter": state["alternative_counter"],
@@ -61,6 +63,8 @@ def find_alternative_restaurant(state, restaurant_db):
     foodtype = state["foodtype"]
     area = state["area"]
     pricerange = state["pricerange"]
+
+    # TODO: Drop additional requirements?
 
     restaurants = restaurant_db
     if foodtype is not None and foodtype != "any" and state["confirmed_foodtype"]:
