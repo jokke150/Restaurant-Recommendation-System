@@ -1,4 +1,4 @@
-from word_matching import closest_word
+from word_matching import closest_word, closest_words
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
 from alternative_rules import find_alt_restaurants, types_to_change
@@ -9,7 +9,9 @@ tokenizer, model, label_encoder = load_nn()
 
 NUM_ALTERNATIVES = 5
 
-# TODO: I treat "long time" and "busy" as hidden features the user cannot query for - is this acceptable?
+# We treat "long time" and "busy" as hidden features the user cannot query for.
+# It is unlikely that a user would want a busy restaurant and just because our rule does
+# not come to the conclusion that a restaurant is busy, it does not mean it is not.
 add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first date",
             "business meeting"]
 
@@ -64,8 +66,6 @@ def state_check(state):
 
 
 def start_information_gathering(state, da, utterance):
-    # TODO: Add initial check for additional requirements
-
     split = utterance.split()
 
     if da == "inform":
@@ -84,6 +84,11 @@ def start_information_gathering(state, da, utterance):
             word = closest_word(split, food_types)
             if word is not None:
                 state["foodtype"] = word
+        # Check if the additional requirements are unknown but mentioned by the user
+        if state["add_reqs"] is None:
+            words = closest_words(split, add_reqs)
+            if words is not None and words:
+                state["add_reqs"] = words
 
         return state_check(state)
 
@@ -124,8 +129,6 @@ def set_pricerange(state, da, utterance):
         if word is not None:
             state["pricerange"] = word
             return state_check(state)
-
-    # TODO: Ask again in case no other return fires?
     return ask_again(state)
 
 
@@ -139,8 +142,6 @@ def set_foodtype(state, da, utterance):
         if word is not None:
             state["foodtype"] = word
             return state_check(state)
-
-    # TODO: Ask again in case no other return fires?
     return ask_again(state)
 
 
@@ -154,8 +155,6 @@ def set_area(state, da, utterance):
         if word is not None:
             state["area"] = word
             return state_check(state)
-
-    # TODO: Ask again in case no other return fires?
     return ask_again(state)
 
 
@@ -167,7 +166,6 @@ def set_add_reqs(state, da, utterance):
             word = closest_word(utterance.split(), [req])
             if word is not None:
                 state["add_reqs"].append(req)
-
     return state_check(state)
 
 
@@ -237,7 +235,7 @@ def restaurant_check(state):
               "\nThese are a couple of alternatives:")
         print_restaurant_options(alt_restaurants)
         return state, "Type a number to choose an alternative.\n" + \
-               "Type anything else to change your preferences."
+                      "Type anything else to change your preferences."
 
     elif len(restaurants) == 1:
         if not (state["confirmed_pricerange"] and state["confirmed_foodtype"]
@@ -254,6 +252,8 @@ def suggest_restaurant(state, restaurants):
     name, foodtype, area, pricerange = restaurant_info(restaurant)
     state["task"] = "restaurant-suggested"
     state["restaurant"] = name
+
+    # TODO: Ask the user if that is all he needs or phone number etc...
     return (state, str(name).capitalize() + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
         foodtype) + " food in the " + str(pricerange) + " price range")
 
@@ -261,6 +261,7 @@ def suggest_restaurant(state, restaurants):
 def restaurant_suggested(state, da, utterance):
     split = utterance.split()
     if da == "reqalts":
+        # TODO: This is actually really hard to reach... -> "anything else"
         return suggest_alternatives(state)
     if da == "request":
         string = ""
@@ -289,20 +290,17 @@ def restaurant_suggested(state, da, utterance):
 
 
 def suggest_alternatives(state):
-    # TODO: Use print_restaurant_options
+    alt_restaurants = restaurants_given_state(state)
+    restaurant = restaurant_by_name(state["restaurant"])
+    alt_restaurants.remove(restaurant)
+    alt_restaurants = alt_restaurants[0: NUM_ALTERNATIVES]
 
-    restaurants = restaurants_given_state(state)
-
-    if len(restaurants) > 1:
-        strn = ""
-        for i in range(0, len(restaurants)):
-            restaurant = restaurants[i]
-            name, foodtype, area, pricerange = restaurant_info(restaurant)
-            strn += str(i) + ": " + str(name) + " in the " + str(area) + \
-                    " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
-                    " price range" + "\n"
-        state["task"] = "alt-restaurant-suggested"
-        return state, strn + "Choose a number: \nIf you don't want an alternative type anything else."
+    if len(alt_restaurants) > 1:
+        print_restaurant_options(alt_restaurants)
+        state["alternatives"] = alt_restaurants
+        state["task"] = "restaurant-options"
+        return state, "Type a number to choose an alternative.\n" + \
+                      "Type anything else to change your preferences."
     return state, "Sorry, I can't find any alternatives."
 
 
@@ -319,16 +317,21 @@ def restaurant_options(state, da, utterance):
                 state["restaurant"] = name
 
                 # Update preferences in state if user selects alternative to stay consistent
-                state["foodtype"] = foodtype
-                state["area"] = area
-                state["pricerange"] = pricerange
-                state["area"] = area
+                if state["foodtype"] != "any":
+                    state["foodtype"] = foodtype
+                if state["area"] != "any":
+                    state["area"] = area
+                if state["pricerange"] != "any":
+                    state["pricerange"] = pricerange
+
+                # TODO IMPORTANT: Update additional requirements if changed
 
                 # TODO: Ask the user if that is all he needs or phone number etc...
                 return state, "You chose: \n" + str(name).capitalize() + " in the " + str(area) + \
                               " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
                               " price range"
 
+    # TODO: Will this lead to problems when calling this function from suggest_alternatives?
     prefs = types_to_change(state)
     string = ""
     for i in range(1, len(prefs) + 1):
@@ -338,6 +341,8 @@ def restaurant_options(state, da, utterance):
 
 
 def preference_options(state, da, utterance):
+    # TODO: Make this more natural language?
+
     split = utterance.split()
 
     for sp in split:

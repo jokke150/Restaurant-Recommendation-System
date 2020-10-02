@@ -1,9 +1,9 @@
 class InferenceRule:
-    def __init__(self, id, antecedent, consequent, true, level):
+    def __init__(self, id, antecedent, consequent, truth, level):
         self.id = id
         self.antecedent = antecedent
         self.consequent = consequent
-        self.true = true
+        self.truth = truth
         self.level = level
 
     def __eq__(self, other):
@@ -14,7 +14,7 @@ class InferenceRule:
 
     def __str__(self):
         antecedent_str = ", ".join(f"{key}: {value}" for key, value in self.antecedent.items())
-        return f"Rule {self.id}. [{antecedent_str}] > {self.consequent} = {self.true}"
+        return f"Rule {self.id}. [{antecedent_str}] > {self.consequent} = {self.truth}"
 
     def evaluate(self, info):
         for key, value in self.antecedent.items():
@@ -22,29 +22,31 @@ class InferenceRule:
                 # TODO: The inverse of rules ("not busy" -> "romantic") is not acceptable, right?
                 return None, None
 
-        return self.consequent, self.true
+        return self.consequent, self.truth
 
 
 def evaluate_inference_rules(restaurant, rules):
-    print("Evaluating rules")
-
-    consequents = restaurant.copy()
-
+    restaurant_info = restaurant.copy()
+    consequents = {}
     rule_fired = True
+
     iteration = 0
     while rule_fired:
         rule_fired = False
         iteration += 1
         for rule in sorted(rules):
-            consequent, true = rule.evaluate(consequents)
+            consequent, truth = rule.evaluate(restaurant_info)
             # Only activate first rule in case of a clash
             # TODO: Use rule confidence parameter for clashing rules
             if consequent is not None and consequent not in consequents:
-                consequents[consequent] = true
+                consequents[consequent] = truth
+                restaurant_info[consequent] = truth
                 rule_fired = True
                 # TODO: Present the reasoning steps and the conclusion (i.e., the restaurant does/does not satisfy the
                 #  additional requirements) to the user ... in a better way (like natural language)
-                print(f"Iteration {iteration}: {rule}")
+
+                # TODO: Make print conditional
+                # print(f"Iteration {iteration}: {rule}")
     return consequents
 
 

@@ -43,9 +43,16 @@ def matched_words_in_split(split, words):
     return list(map(lambda x: take_second(x), lst))
 
 
-def closest_word(split, words):
+def closest_words(split, words):
     matched_words = matched_words_in_split(split, words)
     if len(matched_words) != 0:
+        return matched_words
+    return []
+
+
+def closest_word(split, words):
+    matched_words = closest_words(split, words)
+    if matched_words:
         return matched_words[0]
     return None
 

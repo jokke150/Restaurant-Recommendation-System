@@ -41,37 +41,39 @@ def restaurants_given_state(state):
 
 
 def restaurant_by_name(name):
-    subframe = restaurant_db[(restaurant_db["restaurantname"] == name)]
-    return subframe.iloc[0]
+    restaurant = restaurant_db[(restaurant_db["restaurantname"] == name)].to_dict('records')[0]
+    return restaurant
 
 
 def filter_by_add_reqs(restaurants, requirements):
     if not requirements:
         return restaurants
     else:
-        print("The following restaurants will be checked for your additional requirements:")
-        print_restaurant_options(restaurants)
-
         print(f"\nYour additional requirements are: {', '.join(f'{req}' for req in requirements)}")
 
         filtered = []
         for i in range(0, len(restaurants)):
-            restaurant = restaurants.iloc[i]
+            restaurant = restaurants[i]
             consequents = evaluate_inference_rules(restaurant, inference_rules)
 
             # We only look at requirements which can be met by a restaurant (true consequents)
-            met_requirements = [req for req, true in consequents if true]
+            met_requirements = [req for req, truth in consequents.items() if truth]
 
             if requirements <= met_requirements:
                 filtered.append(restaurant)
-                print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your requirements.')
+                # TODO: Make print conditional
+                # print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your requirements.')
             else:
                 unsatisfied = []
                 for requirement in requirements:
                     if requirement not in met_requirements:
                         unsatisfied.append(requirement)
-                print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following requirements:'
-                      f'\n{" ".join(f"{req}" for req in unsatisfied)}')
+                # TODO: Make print conditional
+                # print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following requirements:'
+                #       f'\n{" ".join(f"{req}" for req in unsatisfied)}')
+
+        # print(f"There are {len(restaurants)} complying with your basic requirements.\n"
+        #       f"{len(filtered)} of these satisfy your additional requirements.")
 
         return filtered
 
