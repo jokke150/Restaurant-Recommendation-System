@@ -37,7 +37,7 @@ def restaurants_given_state(state):
     if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
         restaurants = restaurants[(restaurants["pricerange"] == pricerange)]
 
-    return filter_by_add_reqs(restaurants, state["add_reqs"])
+    return filter_by_add_reqs(restaurants.to_dict('records'), state["add_reqs"])
 
 
 def restaurant_by_name(name):
@@ -76,11 +76,11 @@ def filter_by_add_reqs(restaurants, requirements):
         return filtered
 
 
-# TODO: Use this everywhere options need to be printed - DRY!
 def print_restaurant_options(restaurants):
+    # TODO: Fix tabs in output to align it for all the options
 
     for num in range(0, len(restaurants)):
-        restaurant = restaurants.iloc[num]
+        restaurant = restaurants[num]
         print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} \t- food: {restaurant['food']} " +
               f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
 
