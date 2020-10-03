@@ -20,7 +20,7 @@ ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy"
 
 
 def input_output(state, utterance):
-    if 'baseline' in state["config"]:
+    if state["config"] is not None and 'baseline' in state["config"]:
         dialog_act = baseline2_check(utterance)
     else:
         dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
