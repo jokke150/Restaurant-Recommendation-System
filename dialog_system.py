@@ -259,8 +259,8 @@ def suggest_restaurant(state, restaurants):
     state["restaurant"] = restaurant["restaurantname"]
 
     # TODO: Ask the user if that is all he needs or phone number etc...
-    return (state, f"{restaurant['restaurantname'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
-                   f"that serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
+    return (state, f"{restaurant['restaurantname'].capitalize()} is in the {restaurant['area']} part of town "
+                   f"and serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
 
 
 def restaurant_suggested(state, da, utterance):
@@ -327,6 +327,7 @@ def restaurant_options(state, da, utterance):
                               f"part of town that serves {alternative['food']} in the {alternative['pricerange']} " \
                               f"price range."
 
+    # TODO: If everything is set to any, we end up in an endless loop because no preference can be changed
     # TODO: Will this lead to problems when calling this function from suggest_alternatives?
     prefs = types_to_change(state)
     string = ""

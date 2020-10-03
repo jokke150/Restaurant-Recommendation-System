@@ -77,9 +77,7 @@ def filter_by_add_reqs(restaurants, requirements):
 
 
 def print_restaurant_options(restaurants):
-    # TODO: Fix tabs in output to align it for all the options
-
     for num in range(0, len(restaurants)):
         restaurant = restaurants[num]
-        print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} \t- food: {restaurant['food']} " +
-              f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
+        print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} is in the {restaurant['area']}"
+              f" part of townand serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
