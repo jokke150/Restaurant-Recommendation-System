@@ -1,4 +1,7 @@
+import os
 import time
+
+from gtts import gTTS
 
 CUSTOM_FEATURE_KEYWORDS = {"capitalized text": ["capitalized text", "capitalized", "capital"],
                            "delayed response": ["delayed", "response", "delay"],
