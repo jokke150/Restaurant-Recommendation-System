@@ -1,6 +1,6 @@
 import time
 
-CUSTOM_FEATURE_KEYWORDS = ["capitalized text", "delayed response", "no affirmation"]
+CUSTOM_FEATURE_KEYWORDS = ["capitalized text", "delayed response", "no affirmation", "use baseline"]
 
 
 def ask_configuration():
