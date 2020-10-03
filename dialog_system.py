@@ -256,10 +256,10 @@ def suggest_restaurant(state, restaurants):
     # TODO: Only suggest the first restaurant?
     restaurant = restaurants[0]
     state["task"] = "restaurant-suggested"
-    state["restaurant"] = restaurant["name"]
+    state["restaurant"] = restaurant["restaurantname"]
 
     # TODO: Ask the user if that is all he needs or phone number etc...
-    return (state, f"{restaurant['name'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
+    return (state, f"{restaurant['restaurantname'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
                    f"that serves {restaurant['foodtype']} in the {restaurant['pricerange']} price range.")
 
 
@@ -323,7 +323,7 @@ def restaurant_options(state, da, utterance):
                 update_state_for_alternative(state, alternative)
 
                 # TODO: Ask the user if that is all he needs or phone number etc...
-                return state, f"You choose:\n{alternative['name'].capitalize()} in the {alternative['area']} part of " \
+                return state, f"You choose:\n{alternative['restaurantname'].capitalize()} in the {alternative['area']} part of " \
                               f"town that serves {alternative['foodtype']} in the {alternative['pricerange']} " \
                               f"price range."
 
@@ -337,7 +337,7 @@ def restaurant_options(state, da, utterance):
 
 
 def update_state_for_alternative(state, alternative):
-    state["restaurant"] = alternative["name"]
+    state["restaurant"] = alternative["restaurantname"]
 
     if state["foodtype"] is not None and state["foodtype"] != "any":
         state["foodtype"] = alternative["foodtype"]
