@@ -1,5 +1,4 @@
 import pandas as pd
-
 from learners.baselines import baseline1, baseline2, check_labels, baseline2_check
 from learners.log_regression import logistic_regression
 from learners.neural_net import train_nn, save_nn, load_nn, predict_nn

@@ -2,6 +2,7 @@ from inference_rules import inference_rules, evaluate_inference_rules, get_true_
 from word_matching import closest_word, closest_words
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
+import time
 from alternative_rules import find_alt_restaurants, types_to_change
 from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
     restaurant_by_name, print_restaurant_options
@@ -17,6 +18,41 @@ NUM_ALTERNATIVES = 5
 # not come to the conclusion that a restaurant is busy, it does not mean it is not.
 add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first date",
             "business meeting"]
+
+
+
+def custom_print(text, state):
+    if "caps" in state["features"]:
+        text = text.upper()
+    if "delay" in state["features"]:
+        time.sleep(3)
+    print(text)
+
+def ask_features(state):
+    
+    print("Hello! Before we give you a recommendation, we want to give you the option of turning on a few features.\n"
+          "Please look at the list below and type the feature name to activate it, or type 'stop' if you want to exit feature selection.\n")
+    print("Feature               Description\n\n"
+          "Caps                  All responses will be given in uppercase text\n"
+          "Delay                 All responses will be delayed by 3 seconds")
+    
+    options=["caps", "delay"]
+    
+    inp = 0
+    
+    while inp != "stop":
+        inp = input().lower()
+        words = inp.split()
+        for word in words:
+            if word in options:
+                state["features"].append(word)
+          
+        if inp != "stop":    
+            custom_print("the following list shows activated feature(s): " + str(state.get("features")) + ". You can now type another feature name to activate it or type 'stop' to stop feature selection", state)
+
+    return
+    
+    
 
 
 def input_output(state, utterance):
@@ -237,8 +273,8 @@ def restaurant_check(state):
 
         # TODO: Ask for a preference change if there are no alternatives
         # TODO: Change wording if there is only one alternative
-        print("There are no restaurants with your current set of preferences."
-              "\nThese are a couple of alternatives:")
+        custom_print("There are no restaurants with your current set of preferences."
+              "\nThese are a couple of alternatives:", state)
         print_restaurant_options(alt_restaurants)
         return state, "Type a number to choose an alternative.\n" + \
                       "Type anything else to change your preferences."
@@ -246,7 +282,7 @@ def restaurant_check(state):
     elif len(restaurants) == 1:
         if not (state["confirmed_pricerange"] and state["confirmed_foodtype"]
                 and state["confirmed_area"] and state["confirmed_add_reqs"]):
-            print("Only one restaurant complies with your currently confirmed preferences:")
+            custom_print("Only one restaurant complies with your currently confirmed preferences:", state)
         return suggest_restaurant(state, restaurants)
 
     return state_check(state)

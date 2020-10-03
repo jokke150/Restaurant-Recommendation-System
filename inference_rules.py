@@ -1,3 +1,5 @@
+#from dialog_system import custom_print
+
 class InferenceRule:
     def __init__(self, id, antecedent, consequent, truth, level):
         self.id = id
@@ -72,7 +74,7 @@ def evaluate_inference_rules(restaurant, rules):
                 #  additional requirements) to the user ... in a better way (like natural language)
 
                 # TODO: Make print conditional
-                # print(f"Iteration {iteration}: {rule}")
+                # custom_print(f"Iteration {iteration}: {rule}")
     return consequents
 
 
