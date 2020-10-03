@@ -3,6 +3,7 @@ from word_matching import closest_word, closest_words
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
 import time
+from learners.baselines import baseline2_check
 from alternative_rules import find_alt_restaurants, types_to_change
 from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
     restaurant_by_name, print_restaurant_options
@@ -34,9 +35,10 @@ def ask_features(state):
           "Please look at the list below and type the feature name to activate it, or type 'stop' if you want to exit feature selection.\n")
     print("Feature               Description\n\n"
           "Caps                  All responses will be given in uppercase text\n"
-          "Delay                 All responses will be delayed by 3 seconds")
+          "Delay                 All responses will be delayed by 3 seconds\n"
+          "Baseline              Use our baseline model for dialog act classification\n")
     
-    options=["caps", "delay"]
+    options=["caps", "delay", "baseline"]
     
     inp = 0
     
@@ -56,7 +58,11 @@ def ask_features(state):
 
 
 def input_output(state, utterance):
-    dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
+    
+    if 'baseline' in state.get("features"):
+        dialog_act = baseline2_check(utterance)       
+    else:
+        dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
 
     if dialog_act == "bye":
         state["task"] = "end"
