@@ -6,6 +6,8 @@ from alternative_rules import find_alt_restaurants, types_to_change
 from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
     restaurant_by_name, print_restaurant_options
 
+any_keywords = ["any", "anything", "dont care", "don't care"]  # TODO: Add more?
+
 tokenizer, model, label_encoder = load_nn()
 
 NUM_ALTERNATIVES = 5
@@ -122,8 +124,7 @@ def ask_again(state):
 
 def set_pricerange(state, da, utterance):
     if da == "inform":
-        # TODO: Handle cases like "I don't care"
-        if utterance == "any":
+        if is_any(utterance):
             state["pricerange"] = "any"
             return state_check(state)
         word = closest_word(utterance.split(), price_ranges)
@@ -135,8 +136,7 @@ def set_pricerange(state, da, utterance):
 
 def set_foodtype(state, da, utterance):
     if da == "inform":
-        # TODO: Handle cases like "I don't care"
-        if utterance == "any":
+        if is_any(utterance):
             state["foodtype"] = "any"
             return state_check(state)
         word = closest_word(utterance.split(), food_types)
@@ -148,8 +148,7 @@ def set_foodtype(state, da, utterance):
 
 def set_area(state, da, utterance):
     if da == "inform":
-        # TODO: Handle cases like "I don't care"
-        if utterance == "any":
+        if is_any(utterance):
             state["area"] = "any"
             return state_check(state)
         word = closest_word(utterance.split(), areas)
@@ -157,6 +156,11 @@ def set_area(state, da, utterance):
             state["area"] = word
             return state_check(state)
     return ask_again(state)
+
+
+def is_any(utterance):
+    word = closest_word(utterance.split(), any_keywords)
+    return word is not None
 
 
 def set_add_reqs(state, da, utterance):
@@ -172,6 +176,7 @@ def set_add_reqs(state, da, utterance):
 
 def request_price_affirm(state):
     state["task"] = "price-affirm"
+    # TODO: fix this for any
     return state, "Is it correct, that you want a restaurant in the " + state["pricerange"] + " price range?"
 
 
@@ -344,6 +349,7 @@ def update_state_for_alternative(state, alternative):
         state["pricerange"] = alternative["pricerange"]
         state["confirmed_pricerange"] = True
     if state["add_reqs"] is not None and state["add_reqs"]:
+        # New add reqs: Intersection between old ones and true consequents of alternative
         consequents = evaluate_inference_rules(alternative, inference_rules)
         state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
 
