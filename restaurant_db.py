@@ -48,8 +48,6 @@ def filter_by_add_reqs(state, restaurants):
     if not requirements:
         return restaurants
     else:
-        custom_print(f"\nYour additional requirements are: {', '.join(f'{req}' for req in requirements)}", state)
-
         filtered = []
         for i in range(0, len(restaurants)):
             restaurant = restaurants[i]

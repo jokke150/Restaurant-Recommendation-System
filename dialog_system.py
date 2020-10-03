@@ -81,7 +81,6 @@ def state_check(state):
     if state["add_reqs"] is None:
         return ask_add_reqs(state)
 
-    # TODO: Exception when there are no restaurants satisfying the requirements
     return suggest_restaurant(state, restaurants_given_state(state))
 
 
@@ -131,11 +130,11 @@ def ask_area(state):
 def ask_add_reqs(state):
     state["task"] = "add-reqs"
     options = "\n  - ".join(f"{key}" for key in sorted(ADD_REQ_KEYWORDS))
-    return state, f"Do you have any other requirements? Possible options are: \n  - {options}"
+    return state, f"Do you have any additional requirements? Possible options are: \n  - {options}"
 
 
 def ask_again(state):
-    return state, "I was not able to interpret your answer to my last question. Please rephrase."
+    return state, "I was not able to interpret your input. Please rephrase."
 
 
 def set_config(state, da, utterance):
@@ -272,17 +271,7 @@ def restaurant_check(state):
     restaurants = restaurants_given_state(state)
 
     if len(restaurants) == 0:
-        alt_restaurants = find_alt_restaurants(state, NUM_ALTERNATIVES)
-        state["alternatives"] = alt_restaurants
-        state["task"] = "restaurant-options"
-
-        # TODO: Ask for a preference change if there are no alternatives
-        # TODO: Change wording if there is only one alternative
-        custom_print("There are no restaurants with your current set of preferences."
-                     "\nThese are a couple of alternatives:", state)
-        print_restaurant_options(alt_restaurants)
-        return state, "Type a number to choose an alternative.\n" + \
-               "Type anything else to change your preferences."
+        suggest_alternatives_changed_prefs(state)
 
     elif len(restaurants) == 1:
         if not (state["confirmed_pricerange"] and state["confirmed_foodtype"]
@@ -293,8 +282,24 @@ def restaurant_check(state):
     return state_check(state)
 
 
+def suggest_alternatives_changed_prefs(state):
+    alt_restaurants = find_alt_restaurants(state, NUM_ALTERNATIVES)
+    state["alternatives"] = alt_restaurants
+    state["task"] = "restaurant-options"
+
+    # TODO: Ask for a preference change if there are no alternatives
+    # TODO: Change wording if there is only one alternative
+    custom_print("There are no restaurants with your current set of preferences."
+                 "\nThese are a couple of alternatives:", state)
+    print_restaurant_options(alt_restaurants)
+    return state, "Type a number to choose an alternative.\n" + \
+                  "Type anything else to change your preferences."
+
+
 def suggest_restaurant(state, restaurants):
-    # TODO: Only suggest the first restaurant?
+    if not restaurants:
+        return suggest_alternatives_changed_prefs(state)
+
     restaurant = restaurants[0]
     state["task"] = "restaurant-suggested"
     state["restaurant"] = restaurant["restaurantname"]
@@ -308,7 +313,7 @@ def restaurant_suggested(state, da, utterance):
     split = utterance.split()
     if da == "reqalts":
         # TODO: This is actually really hard to reach... -> "anything else"
-        return suggest_alternatives(state)
+        return suggest_alternatives_same_prefs(state)
     if da == "request":
         string = ""
         name = state["restaurant"]
@@ -332,21 +337,22 @@ def restaurant_suggested(state, da, utterance):
 
         return state, string
 
-    return state, ""  # TODO: Is this useful?
+    return ask_again(state)
 
 
-def suggest_alternatives(state):
+def suggest_alternatives_same_prefs(state):
     alt_restaurants = restaurants_given_state(state)
     restaurant = restaurant_by_name(state["restaurant"])
     alt_restaurants.remove(restaurant)
     alt_restaurants = alt_restaurants[0: NUM_ALTERNATIVES]
 
-    if len(alt_restaurants) > 1:
+    if alt_restaurants:
         print_restaurant_options(alt_restaurants)
         state["alternatives"] = alt_restaurants
         state["task"] = "restaurant-options"
         return state, "Type a number to choose an alternative.\n" + \
-               "Type anything else to change your preferences."
+                      "Type anything else to change your preferences."
+    # TODO: Allow user to change preferences if there are no alternatives
     return state, "Sorry, I can't find any alternatives."
 
 
@@ -378,6 +384,24 @@ def restaurant_options(state, da, utterance):
     return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
 
 
+def update_state_for_alternative(state, alternative):
+    state["restaurant"] = alternative["restaurantname"]
+
+    if state["foodtype"] is not None and state["foodtype"] != "any":
+        state["foodtype"] = alternative["food"]
+        state["confirmed_foodtype"] = True
+    if state["area"] is not None and state["area"] != "any":
+        state["area"] = alternative["area"]
+        state["confirmed_area"] = True
+    if state["pricerange"] is not None and state["pricerange"] != "any":
+        state["pricerange"] = alternative["pricerange"]
+        state["confirmed_pricerange"] = True
+    if state["add_reqs"] is not None and state["add_reqs"]:
+        # New add reqs: Intersection between old ones and true consequents of alternative
+        consequents = evaluate_inference_rules(alternative, inference_rules)
+        state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
+
+
 def get_preference_options(state):
     foodtype = state["foodtype"]
     area = state["area"]
@@ -395,24 +419,6 @@ def get_preference_options(state):
         preference_options.append("add_reqs")
 
     return preference_options
-
-
-def update_state_for_alternative(state, alternative):
-    state["restaurant"] = alternative["restaurantname"]
-
-    if state["foodtype"] is not None and state["foodtype"] != "any":
-        state["foodtype"] = alternative["food"]
-        state["confirmed_foodtype"] = True
-    if state["area"] is not None and state["area"] != "any":
-        state["area"] = alternative["area"]
-        state["confirmed_area"] = True
-    if state["pricerange"] is not None and state["pricerange"] != "any":
-        state["pricerange"] = alternative["pricerange"]
-        state["confirmed_pricerange"] = True
-    if state["add_reqs"] is not None and state["add_reqs"]:
-        # New add reqs: Intersection between old ones and true consequents of alternative
-        consequents = evaluate_inference_rules(alternative, inference_rules)
-        state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
 
 
 def preference_options(state, da, utterance):
