@@ -22,6 +22,6 @@ if __name__ == '__main__':
               f'- Foodtype: {str(state["foodtype"])} (Confirmed: {state["confirmed_foodtype"]}) \n'
               f'- Pricerange: {str(state["pricerange"])} (Confirmed: {state["confirmed_pricerange"]})\n'
               f'- Alt_nr: {str(state["alternative_counter"])}\n'
-              f'- add_reqs: {str(state["add_reqs"])}\n'
+              f'- add_reqs: {str(state["add_reqs"])} (Confirmed: {state["confirmed_add_reqs"]})\n'
               f'- last-confirmed: {str(state["last-confirmed"])}')
         print(reply)

@@ -260,7 +260,7 @@ def suggest_restaurant(state, restaurants):
 
     # TODO: Ask the user if that is all he needs or phone number etc...
     return (state, f"{restaurant['restaurantname'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
-                   f"that serves {restaurant['foodtype']} in the {restaurant['pricerange']} price range.")
+                   f"that serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
 
 
 def restaurant_suggested(state, da, utterance):
@@ -323,8 +323,8 @@ def restaurant_options(state, da, utterance):
                 update_state_for_alternative(state, alternative)
 
                 # TODO: Ask the user if that is all he needs or phone number etc...
-                return state, f"You choose:\n{alternative['restaurantname'].capitalize()} in the {alternative['area']} part of " \
-                              f"town that serves {alternative['foodtype']} in the {alternative['pricerange']} " \
+                return state, f"You choose:\n{alternative['restaurantname'].capitalize()} in the {alternative['area']} " \
+                              f"part of town that serves {alternative['food']} in the {alternative['pricerange']} " \
                               f"price range."
 
     # TODO: Will this lead to problems when calling this function from suggest_alternatives?
@@ -340,7 +340,7 @@ def update_state_for_alternative(state, alternative):
     state["restaurant"] = alternative["restaurantname"]
 
     if state["foodtype"] is not None and state["foodtype"] != "any":
-        state["foodtype"] = alternative["foodtype"]
+        state["foodtype"] = alternative["food"]
         state["confirmed_foodtype"] = True
     if state["area"] is not None and state["area"] != "any":
         state["area"] = alternative["area"]
