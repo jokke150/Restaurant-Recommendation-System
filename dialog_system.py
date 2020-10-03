@@ -274,7 +274,8 @@ def restaurant_check(state):
         alt_restaurants = find_alt_restaurants(state, NUM_ALTERNATIVES)
         state["alternatives"] = alt_restaurants
         state["task"] = "restaurant-options"
-
+        
+        # TODO: fix text to speech here because now it stops talking halfway due to multiple print statements in a row
         # TODO: Ask for a preference change if there are no alternatives
         # TODO: Change wording if there is only one alternative
         custom_print("There are no restaurants with your current set of preferences."

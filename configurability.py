@@ -1,6 +1,8 @@
+from gtts import gTTS
+import os
 import time
 
-CUSTOM_FEATURE_KEYWORDS = ["capitalized text", "delayed response", "no affirmation", "use baseline"]
+CUSTOM_FEATURE_KEYWORDS = ["capitalized text", "delayed response", "no affirmation", "speech", "use baseline"]
 
 
 def ask_configuration():
@@ -15,4 +17,11 @@ def custom_print(text, state):
             text = text.upper()
         if "delayed response" in state["config"]:
             time.sleep(3)
+        if "speech" in state["config"]:
+            speech = gTTS(text = text, lang = "en", slow = False)
+            #This audio file will be overwritten and played everytime the system responds 
+            speech.save("speech.mp3")
+            os.system("start speech.mp3")
+            
+    
     print(text)
