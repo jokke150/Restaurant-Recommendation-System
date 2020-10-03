@@ -150,7 +150,7 @@ def ask_area(state):
 def ask_add_reqs(state):
     state["task"] = "add-reqs"
     options = "\n  - ".join(f"{key}" for key in sorted(add_reqs))
-    return state, f"Do you have any other requirements? Possible options are: \n{options}"
+    return state, f"Do you have any other requirements? Possible options are: \n  -{options}"
 
 
 def ask_again(state):
@@ -292,11 +292,11 @@ def suggest_restaurant(state, restaurants):
     # TODO: Only suggest the first restaurant?
     restaurant = restaurants[0]
     state["task"] = "restaurant-suggested"
-    state["restaurant"] = restaurant["name"]
+    state["restaurant"] = restaurant["restaurantname"]
 
     # TODO: Ask the user if that is all he needs or phone number etc...
-    return (state, f"{restaurant['name'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
-                   f"that serves {restaurant['foodtype']} in the {restaurant['pricerange']} price range.")
+    return (state, f"{restaurant['restaurantname'].capitalize()} is in the {restaurant['area']} part of town "
+                   f"and serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
 
 
 def restaurant_suggested(state, da, utterance):
@@ -346,6 +346,8 @@ def suggest_alternatives(state):
 
 
 def restaurant_options(state, da, utterance):
+    # TODO: Should we allow the user to return to his previous choice?
+
     split = utterance.split()
     for sp in split:
         if represents_int(sp):
@@ -359,12 +361,11 @@ def restaurant_options(state, da, utterance):
                 update_state_for_alternative(state, alternative)
 
                 # TODO: Ask the user if that is all he needs or phone number etc...
-                return state, f"You choose:\n{alternative['name'].capitalize()} in the {alternative['area']} part of " \
-                              f"town that serves {alternative['foodtype']} in the {alternative['pricerange']} " \
+                return state, f"You choose:\n{alternative['restaurantname'].capitalize()} in the {alternative['area']} " \
+                              f"part of town that serves {alternative['food']} in the {alternative['pricerange']} " \
                               f"price range."
 
-    # TODO: Will this lead to problems when calling this function from suggest_alternatives?
-    prefs = types_to_change(state)
+    prefs = get_preference_options(state)
     string = ""
     for i in range(1, len(prefs) + 1):
         string += str(i) + ": " + str(prefs[i - 1]) + "\n"
@@ -372,11 +373,30 @@ def restaurant_options(state, da, utterance):
     return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
 
 
+def get_preference_options(state):
+    foodtype = state["foodtype"]
+    area = state["area"]
+    pricerange = state["pricerange"]
+    add_reqs = state["add_reqs"]
+
+    preference_options = []
+    if foodtype is not None and state["confirmed_foodtype"]:
+        preference_options.append("foodtype")
+    if area is not None and state["confirmed_area"]:
+        preference_options.append("area")
+    if pricerange is not None and state["confirmed_pricerange"]:
+        preference_options.append("pricerange")
+    if add_reqs is not None and state["confirmed_add_reqs"]:
+        preference_options.append("add_reqs")
+
+    return preference_options
+
+
 def update_state_for_alternative(state, alternative):
-    state["restaurant"] = alternative["name"]
+    state["restaurant"] = alternative["restaurantname"]
 
     if state["foodtype"] is not None and state["foodtype"] != "any":
-        state["foodtype"] = alternative["foodtype"]
+        state["foodtype"] = alternative["food"]
         state["confirmed_foodtype"] = True
     if state["area"] is not None and state["area"] != "any":
         state["area"] = alternative["area"]
@@ -398,7 +418,7 @@ def preference_options(state, da, utterance):
     for sp in split:
         if represents_int(sp):
             res_nr = int(sp)
-            prefs = types_to_change(state)
+            prefs = get_preference_options(state)
             if res_nr in range(1, len(prefs) + 1):
                 pref = prefs[res_nr - 1]
                 state["task"] = "restaurant-suggested"
@@ -408,8 +428,11 @@ def preference_options(state, da, utterance):
                 elif pref == "foodtype":
                     state["confirmed_foodtype"] = False
                     return ask_foodtype(state)
-                else:
+                elif pref == "area":
                     state["confirmed_area"] = False
                     return ask_area(state)
+                else:
+                    state["confirmed_add_reqs"] = False
+                    return  ask_add_reqs(state)
 
     return state, "Please give a number that corresponds to a preference."
