@@ -21,7 +21,6 @@ add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first
             "business meeting"]
 
 
-
 def custom_print(text, state):
     if "caps" in state["features"]:
         text = text.upper()
@@ -53,8 +52,6 @@ def ask_features(state):
             custom_print("the following list shows activated feature(s): " + str(state.get("features")) + ". You can now type another feature name to activate it or type 'stop' to stop feature selection", state)
 
     return
-    
-    
 
 
 def input_output(state, utterance):
@@ -91,23 +88,31 @@ def input_output(state, utterance):
 def state_check(state):
     # TODO: Add general affirm in which multiple things can be confirmed at once?
     if state["pricerange"] is not None and not state["confirmed_pricerange"]:
-        return request_price_affirm(state)
-    elif state["foodtype"] is not None and not state["confirmed_foodtype"]:
-        return request_food_affirm(state)
-    elif state["area"] is not None and not state["confirmed_area"]:
-        return request_area_affirm(state)
-    elif state["add_reqs"] is not None and not state["confirmed_add_reqs"]:
-        return request_add_reqs_affirm(state)
-    elif state["pricerange"] is None:
+        if "no affirmation" not in state["features"]:
+            return request_price_affirm(state)
+        state["confirmed_pricerange"] = True
+    if state["foodtype"] is not None and not state["confirmed_foodtype"]:
+        if "no affirmation" not in state["features"]:
+            return request_food_affirm(state)
+        state["confirmed_foodtype"] = True
+    if state["area"] is not None and not state["confirmed_area"]:
+        if "no affirmation" not in state["features"]:
+            return request_area_affirm(state)
+        state["confirmed_area"] = True
+    if state["add_reqs"] is not None and not state["confirmed_add_reqs"]:
+        if "no affirmation" not in state["features"]:
+            return request_add_reqs_affirm(state)
+        state["confirmed_add_reqs"] = True
+    if state["pricerange"] is None:
         return ask_pricerange(state)
-    elif state["foodtype"] is None:
+    if state["foodtype"] is None:
         return ask_foodtype(state)
-    elif state["area"] is None:
+    if state["area"] is None:
         return ask_area(state)
-    elif state["add_reqs"] is None:
+    if state["add_reqs"] is None:
         return ask_add_reqs(state)
-    else:
-        return suggest_restaurant(state, restaurants_given_state(state))
+
+    return suggest_restaurant(state, restaurants_given_state(state))
 
 
 def start_information_gathering(state, da, utterance):
@@ -242,7 +247,7 @@ def request_add_reqs_affirm(state):
 
 
 def affirm(state, da, utterance):
-    if da == "affirm":
+    if da == "affirm" in state["features"]:
         if state["task"] == "price-affirm":
             state["confirmed_pricerange"] = True
             state["last-confirmed"] = "pricerange"

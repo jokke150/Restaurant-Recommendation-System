@@ -2,16 +2,12 @@ import exercise1a as main
 from dialog_system import input_output, ask_features, custom_print
 import time
 
-
-
-
-
 if __name__ == '__main__':
     
     #TODO Add (more) features
     state = {"task": "start", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
              "confirmed_pricerange": False, "area": None, "confirmed_area": False, "confirmed_add_reqs": False,
-             "restaurant": None, "add_reqs": None, "alternative_counter": int(0), "last-confirmed": "", "features" : []}
+             "restaurant": None, "add_reqs": None, "alternative_counter": int(0), "last-confirmed": "", "features": []}
     
     features = ask_features(state)    
     
