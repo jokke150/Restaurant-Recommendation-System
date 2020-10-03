@@ -1,15 +1,14 @@
 from itertools import product
-
-from word_matching import take_second
 from restaurant_db import restaurants_given_state
 
-price_alternatives = [{"cheap", "moderate"},
+NUM_ALTERNATIVES = 5
+PRICE_ALTERNATIVES = [{"cheap", "moderate"},
                       {"moderate", "expensive"}]
-location_alternatives = [{"centre", "north", "west"},
+LOCATION_ALTERNATIVES = [{"centre", "north", "west"},
                          {"centre", "north", "east"},
                          {"centre", "south", "west"},
                          {"centre", "south", "east"}]
-food_alternatives = [{"thai", "chinese", "korean", "vietnamese", "asian oriental"},
+FOOD_ALTERNATIVES = [{"thai", "chinese", "korean", "vietnamese", "asian oriental"},
                      {"mediterranean", "spanish", "portuguese", "italian", "romanian", "tuscan", "catalan"},
                      {"french", "european", "bistro", "swiss", "gastropub", "traditional"},
                      {"north american", "steakhouse", "british"},
@@ -20,20 +19,20 @@ food_alternatives = [{"thai", "chinese", "korean", "vietnamese", "asian oriental
 def get_alt_prefs_by_type(state, type):
     if type == "foodtype":
         alternative_foods = set()
-        for food_set in food_alternatives:
+        for food_set in FOOD_ALTERNATIVES:
             if state[type] in food_set:
                 alternative_foods.update(food_set)
                 alternative_foods.remove(state[type])
                 return alternative_foods
     if type == "pricerange":
         alternative_prices = set()
-        for price_set in price_alternatives:
+        for price_set in PRICE_ALTERNATIVES:
             if state[type] in price_set:
                 alternative_prices.update(price_set)
                 alternative_prices.remove(state[type])
         return list(dict.fromkeys(alternative_prices))
     alternative_area = set()
-    for location_set in location_alternatives:
+    for location_set in LOCATION_ALTERNATIVES:
         if state[type] in location_set:
             alternative_area.update(location_set)
             alternative_area.remove(state[type])

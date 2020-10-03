@@ -1,63 +1,27 @@
+from configurability import CUSTOM_FEATURE_KEYWORDS, custom_print
 from inference_rules import inference_rules, evaluate_inference_rules, get_true_consequents
 from word_matching import closest_word, closest_words
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
-import time
 from learners.baselines import baseline2_check
-from alternative_rules import find_alt_restaurants, types_to_change
+from alternative_rules import NUM_ALTERNATIVES, find_alt_restaurants
 from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
     restaurant_by_name, print_restaurant_options
 
-any_keywords = ["any", "anything", "dont care", "don't care"]  # TODO: Add more?
-
 tokenizer, model, label_encoder = load_nn()
 
-NUM_ALTERNATIVES = 5
+ANY_KEYWORDS = ["any", "anything", "dont care", "don't care"]  # TODO: Add more?
 
-# We treat "long time" and "busy" as hidden features the user cannot query for.
+# We treat "long time" and "busy" as hidden properties the user cannot query for.
 # It is unlikely that a user would want a busy restaurant and just because our rule does
 # not come to the conclusion that a restaurant is busy, it does not mean it is not.
-add_reqs = ["children", "romantic", "large group", "good value", "spicy", "first date",
+ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy", "first date",
             "business meeting"]
 
 
-def custom_print(text, state):
-    if "caps" in state["features"]:
-        text = text.upper()
-    if "delay" in state["features"]:
-        time.sleep(3)
-    print(text)
-
-def ask_features(state):
-    
-    print("Hello! Before we give you a recommendation, we want to give you the option of turning on a few features.\n"
-          "Please look at the list below and type the feature name to activate it, or type 'stop' if you want to exit feature selection.\n")
-    print("Feature               Description\n\n"
-          "Caps                  All responses will be given in uppercase text\n"
-          "Delay                 All responses will be delayed by 3 seconds\n"
-          "Baseline              Use our baseline model for dialog act classification\n")
-    
-    options=["caps", "delay", "baseline"]
-    
-    inp = 0
-    
-    while inp != "stop":
-        inp = input().lower()
-        words = inp.split()
-        for word in words:
-            if word in options:
-                state["features"].append(word)
-          
-        if inp != "stop":    
-            custom_print("the following list shows activated feature(s): " + str(state.get("features")) + ". You can now type another feature name to activate it or type 'stop' to stop feature selection", state)
-
-    return
-
-
 def input_output(state, utterance):
-    
-    if 'baseline' in state.get("features"):
-        dialog_act = baseline2_check(utterance)       
+    if 'baseline' in state["config"]:
+        dialog_act = baseline2_check(utterance)
     else:
         dialog_act = predict_nn(utterance, tokenizer, model, label_encoder)
 
@@ -66,6 +30,8 @@ def input_output(state, utterance):
         return state, "Goodbye, enjoy your meal!"
 
     switcher = {
+        "configure": set_config,
+        "config-affirm": affirm,
         "start": start_information_gathering,
         "pricerange": set_pricerange,
         "price-affirm": affirm,
@@ -87,20 +53,23 @@ def input_output(state, utterance):
 
 def state_check(state):
     # TODO: Add general affirm in which multiple things can be confirmed at once?
+    if state["config"] is not None and not state["confirmed_config"]:
+        return request_config_affirm(state)
+
     if state["pricerange"] is not None and not state["confirmed_pricerange"]:
-        if "no affirmation" not in state["features"]:
+        if "no affirmation" not in state["config"]:
             return request_price_affirm(state)
         state["confirmed_pricerange"] = True
     if state["foodtype"] is not None and not state["confirmed_foodtype"]:
-        if "no affirmation" not in state["features"]:
+        if "no affirmation" not in state["config"]:
             return request_food_affirm(state)
         state["confirmed_foodtype"] = True
     if state["area"] is not None and not state["confirmed_area"]:
-        if "no affirmation" not in state["features"]:
+        if "no affirmation" not in state["config"]:
             return request_area_affirm(state)
         state["confirmed_area"] = True
     if state["add_reqs"] is not None and not state["confirmed_add_reqs"]:
-        if "no affirmation" not in state["features"]:
+        if "no affirmation" not in state["config"]:
             return request_add_reqs_affirm(state)
         state["confirmed_add_reqs"] = True
     if state["pricerange"] is None:
@@ -136,7 +105,7 @@ def start_information_gathering(state, da, utterance):
                 state["foodtype"] = word
         # Check if the additional requirements are unknown but mentioned by the user
         if state["add_reqs"] is None:
-            words = closest_words(split, add_reqs)
+            words = closest_words(split, ADD_REQ_KEYWORDS)
             if words is not None and words:
                 state["add_reqs"] = words
 
@@ -160,13 +129,23 @@ def ask_area(state):
 
 def ask_add_reqs(state):
     state["task"] = "add-reqs"
-    options = "\n  - ".join(f"{key}" for key in sorted(add_reqs))
+    options = "\n  - ".join(f"{key}" for key in sorted(ADD_REQ_KEYWORDS))
     return state, f"Do you have any other requirements? Possible options are: \n  -{options}"
 
 
 def ask_again(state):
-    # TODO: Actually ask the question again
     return state, "I was not able to interpret your answer to my last question. Please rephrase."
+
+
+def set_config(state, da, utterance):
+    state["config"] = []
+
+    if da != "deny" and da != "negate":
+        for feature in CUSTOM_FEATURE_KEYWORDS:
+            word = closest_word(utterance.split(), [feature])
+            if word is not None:
+                state["config"].append(feature)
+    return state_check(state)
 
 
 def set_pricerange(state, da, utterance):
@@ -206,7 +185,7 @@ def set_area(state, da, utterance):
 
 
 def is_any(utterance):
-    word = closest_word(utterance.split(), any_keywords)
+    word = closest_word(utterance.split(), ANY_KEYWORDS)
     return word is not None
 
 
@@ -214,11 +193,20 @@ def set_add_reqs(state, da, utterance):
     state["add_reqs"] = []
 
     if da != "deny" and da != "negate":
-        for req in add_reqs:
+        for req in ADD_REQ_KEYWORDS:
             word = closest_word(utterance.split(), [req])
             if word is not None:
                 state["add_reqs"].append(req)
     return state_check(state)
+
+
+def request_config_affirm(state):
+    state["task"] = "config-affirm"
+    if len(state['config']) == 0:
+        return state, "Is it correct, that you do not want to enable any custom features?"
+    else:
+        return state, f"Is it correct, that you want to enable the following custom features?" \
+                      f"\n{', '.join(f'{feature}' for feature in state['config'])}"
 
 
 def request_price_affirm(state):
@@ -247,7 +235,12 @@ def request_add_reqs_affirm(state):
 
 
 def affirm(state, da, utterance):
-    if da == "affirm" in state["features"]:
+    if da == "affirm":
+        if state["task"] == "config-affirm":
+            state["task"] = "start"
+            state["confirmed_config"] = True
+            return state, "\nThank you for selecting custom features!\n" \
+                          "You can ask for restaurants by area, price range, or food type.\nHow may I help you?"
         if state["task"] == "price-affirm":
             state["confirmed_pricerange"] = True
             state["last-confirmed"] = "pricerange"
