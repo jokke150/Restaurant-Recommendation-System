@@ -1,8 +1,9 @@
+from inference_rules import inference_rules, evaluate_inference_rules, get_true_consequents
 from word_matching import closest_word, closest_words
 from learners.neural_net import load_nn, predict_nn
 from exercise1a import represents_int
 from alternative_rules import find_alt_restaurants, types_to_change
-from restaurant_db import food_types, areas, food_qualities, price_ranges, restaurants_given_state, restaurant_info, \
+from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
     restaurant_by_name, print_restaurant_options
 
 tokenizer, model, label_encoder = load_nn()
@@ -249,13 +250,12 @@ def restaurant_check(state):
 def suggest_restaurant(state, restaurants):
     # TODO: Only suggest the first restaurant?
     restaurant = restaurants[0]
-    name, foodtype, area, pricerange = restaurant_info(restaurant)
     state["task"] = "restaurant-suggested"
-    state["restaurant"] = name
+    state["restaurant"] = restaurant["name"]
 
     # TODO: Ask the user if that is all he needs or phone number etc...
-    return (state, str(name).capitalize() + " is a nice restaurant in the " + str(area) + " part of town that serves " + str(
-        foodtype) + " food in the " + str(pricerange) + " price range")
+    return (state, f"{restaurant['name'].capitalize()} is a nice restaurant in the {restaurant['area']} part of town "
+                   f"that serves {restaurant['foodtype']} in the {restaurant['pricerange']} price range.")
 
 
 def restaurant_suggested(state, da, utterance):
@@ -312,24 +312,15 @@ def restaurant_options(state, da, utterance):
             alternatives = state["alternatives"]
             if res_nr in range(1, len(alternatives) + 1):
                 state["task"] = "restaurant-suggested"
-                restaurant = alternatives[res_nr - 1]
-                name, foodtype, area, pricerange = restaurant_info(restaurant)
-                state["restaurant"] = name
+                alternative = alternatives[res_nr - 1]
 
                 # Update preferences in state if user selects alternative to stay consistent
-                if state["foodtype"] != "any":
-                    state["foodtype"] = foodtype
-                if state["area"] != "any":
-                    state["area"] = area
-                if state["pricerange"] != "any":
-                    state["pricerange"] = pricerange
-
-                # TODO IMPORTANT: Update additional requirements if changed
+                update_state_for_alternative(state, alternative)
 
                 # TODO: Ask the user if that is all he needs or phone number etc...
-                return state, "You chose: \n" + str(name).capitalize() + " in the " + str(area) + \
-                              " part of town that serves " + str(foodtype) + " food in the " + str(pricerange) + \
-                              " price range"
+                return state, f"You choose:\n{alternative['name'].capitalize()} in the {alternative['area']} part of " \
+                              f"town that serves {alternative['foodtype']} in the {alternative['pricerange']} " \
+                              f"price range."
 
     # TODO: Will this lead to problems when calling this function from suggest_alternatives?
     prefs = types_to_change(state)
@@ -338,6 +329,23 @@ def restaurant_options(state, da, utterance):
         string += str(i) + ": " + str(prefs[i - 1]) + "\n"
     state["task"] = "preference-options"
     return state, "Preferences to change: \n" + string + "Type the number for the preference you want to change."
+
+
+def update_state_for_alternative(state, alternative):
+    state["restaurant"] = alternative["name"]
+
+    if state["foodtype"] is not None and state["foodtype"] != "any":
+        state["foodtype"] = alternative["foodtype"]
+        state["confirmed_foodtype"] = True
+    if state["area"] is not None and state["area"] != "any":
+        state["area"] = alternative["area"]
+        state["confirmed_area"] = True
+    if state["pricerange"] is not None and state["pricerange"] != "any":
+        state["pricerange"] = alternative["pricerange"]
+        state["confirmed_pricerange"] = True
+    if state["add_reqs"] is not None and state["add_reqs"]:
+        consequents = evaluate_inference_rules(alternative, inference_rules)
+        state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
 
 
 def preference_options(state, da, utterance):

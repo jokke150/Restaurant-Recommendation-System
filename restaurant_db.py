@@ -1,11 +1,9 @@
 import random
 
-from inference_rules import init_inference_rules, evaluate_inference_rules
+from inference_rules import inference_rules, evaluate_inference_rules, get_true_consequents
 import pandas as pd
 
 random.seed(30)  # we want replicable behavior
-
-inference_rules = init_inference_rules()
 
 
 restaurant_db = pd.read_csv("data/restaurant_info.csv")
@@ -57,7 +55,7 @@ def filter_by_add_reqs(restaurants, requirements):
             consequents = evaluate_inference_rules(restaurant, inference_rules)
 
             # We only look at requirements which can be met by a restaurant (true consequents)
-            met_requirements = [req for req, truth in consequents.items() if truth]
+            met_requirements = get_true_consequents(consequents)
 
             if requirements <= met_requirements:
                 filtered.append(restaurant)
@@ -85,8 +83,3 @@ def print_restaurant_options(restaurants):
         restaurant = restaurants[num]
         print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} \t- food: {restaurant['food']} " +
               f"\t- area: {restaurant['area']} \t- price: {restaurant['pricerange']}")
-
-
-def restaurant_info(restaurant):
-    return (restaurant["restaurantname"], restaurant["food"], restaurant["area"],
-            restaurant["pricerange"])

@@ -25,6 +25,32 @@ class InferenceRule:
         return self.consequent, self.truth
 
 
+def init_inference_rules():
+    rules = []
+
+    # Given rules
+    rules.append(InferenceRule(1, {"pricerange": "cheap", "food quality": "good food"}, "busy", True, 1))
+    rules.append(InferenceRule(2, {"food": "spanish"}, "long time", True, 1))
+    rules.append(InferenceRule(3, {"busy": True}, "long time", True, 2))
+    rules.append(InferenceRule(4, {"long time": True}, "children", False, 2))
+    rules.append(InferenceRule(5, {"busy": True}, "romantic", False, 2))
+    rules.append(InferenceRule(6, {"long time": True}, "romantic", True, 2))
+
+    # Custom rules
+    rules.append(InferenceRule(7, {"seats": "above 100"}, "large group", True, 1))
+    rules.append(InferenceRule(8, {"pricerange": "cheap", "food quality": "good food", "portion size": "large"},
+                               "good value", True, 1))
+    rules.append(InferenceRule(9, {"food": "chinese"}, "spicy", True, 1))
+    rules.append(InferenceRule(10, {"good value": True, "romantic": True}, "first date", True, 2))
+    rules.append(InferenceRule(11, {"spicy": True}, "children", False, 2))
+    rules.append(InferenceRule(12, {"large group": True, "children":  False}, "business meeting", True, 3))
+
+    return rules
+
+
+inference_rules = init_inference_rules()
+
+
 def evaluate_inference_rules(restaurant, rules):
     restaurant_info = restaurant.copy()
     consequents = {}
@@ -50,43 +76,5 @@ def evaluate_inference_rules(restaurant, rules):
     return consequents
 
 
-def init_inference_rules():
-    rules = []
-
-    # Given rules
-    rules.append(InferenceRule(1, {"pricerange": "cheap", "food quality": "good food"}, "busy", True, 1))
-    rules.append(InferenceRule(2, {"food": "spanish"}, "long time", True, 1))
-    rules.append(InferenceRule(3, {"busy": True}, "long time", True, 2))
-    rules.append(InferenceRule(4, {"long time": True}, "children", False, 2))
-    rules.append(InferenceRule(5, {"busy": True}, "romantic", False, 2))
-    rules.append(InferenceRule(6, {"long time": True}, "romantic", True, 2))
-
-    # Custom rules
-    rules.append(InferenceRule(7, {"seats": "above 100"}, "large group", True, 1))
-    rules.append(InferenceRule(8, {"pricerange": "cheap", "food quality": "good food", "portion size": "large"},
-                               "good value", True, 1))
-    rules.append(InferenceRule(9, {"food": "chinese"}, "spicy", True, 1))
-    rules.append(InferenceRule(10, {"good value": True, "romantic": True}, "first date", True, 2))
-    rules.append(InferenceRule(11, {"spicy": True}, "children", False, 2))
-    rules.append(InferenceRule(12, {"large group": True, "children":  False}, "business meeting", True, 3))
-
-    return rules
-
-
-# TODO: REMOVE LATER ON
-if __name__ == '__main__':
-    # how to use
-    rules = init_inference_rules()
-
-    # HOWTO dataframe row to dict
-    # restaurant_db = pd.read_csv("data/restaurant_info.csv")
-    # restaurant = restaurant_db[(restaurant_db["food"] == "spanish")].to_dict(orient='records')[0]
-
-    restaurant = {'restaurantname': 'royal standard', 'pricerange': 'cheap', 'area': 'east', 'food': 'spanish',
-                  'phone': '01223 247877', 'addr': '290 mill road city centre', 'postcode': 'c.b 1',
-                  'food quality': 'good food', 'seats': 'above 100', 'portion size': 'small'}
-
-    print(restaurant)
-
-    restaurant = evaluate_inference_rules(restaurant, rules)
-    print(restaurant)
+def get_true_consequents(consequents):
+    return [req for req, truth in consequents.items() if truth]
