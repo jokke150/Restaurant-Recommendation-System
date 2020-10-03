@@ -81,6 +81,7 @@ def state_check(state):
     if state["add_reqs"] is None:
         return ask_add_reqs(state)
 
+    # TODO: Exception when there are no restaurants satisfying the requirements
     return suggest_restaurant(state, restaurants_given_state(state))
 
 
@@ -275,7 +276,6 @@ def restaurant_check(state):
         state["alternatives"] = alt_restaurants
         state["task"] = "restaurant-options"
 
-        # TODO: fix text to speech here because now it stops talking halfway due to multiple print statements in a row
         # TODO: Ask for a preference change if there are no alternatives
         # TODO: Change wording if there is only one alternative
         custom_print("There are no restaurants with your current set of preferences."

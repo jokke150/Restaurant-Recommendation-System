@@ -35,7 +35,7 @@ def restaurants_given_state(state):
     if pricerange is not None and pricerange != "any" and state["confirmed_pricerange"]:
         restaurants = restaurants[(restaurants["pricerange"] == pricerange)]
 
-    return filter_by_add_reqs(restaurants.to_dict('records'), state["add_reqs"])
+    return filter_by_add_reqs(state, restaurants.to_dict('records'))
 
 
 def restaurant_by_name(name):
@@ -43,7 +43,8 @@ def restaurant_by_name(name):
     return restaurant
 
 
-def filter_by_add_reqs(restaurants, requirements):
+def filter_by_add_reqs(state, restaurants):
+    requirements = state["add_reqs"]
     if not requirements:
         return restaurants
     else:

@@ -1,5 +1,9 @@
+import io
+from time import sleep
+
 import os
-import time
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 
 from gtts import gTTS
 
@@ -20,12 +24,16 @@ def custom_print(text, state):
         if "capitalized text" in state["config"]:
             text = text.upper()
         if "delayed response" in state["config"]:
-            time.sleep(3)
-        if "speech" in state["config"]:
-            speech = gTTS(text = text, lang = "en", slow = False)
-            #This audio file will be overwritten and played everytime the system responds
-            speech.save("speech.mp3")
-            os.system("start speech.mp3")
-
+            sleep(3)
 
     print(text)
+
+    if state["config"] is not None and state["confirmed_config"] and "text to speech" in state["config"]:
+        with io.BytesIO() as f:
+            gTTS(text=text, lang='en', slow=False).write_to_fp(f)
+            f.seek(0)
+            pygame.mixer.init()
+            pygame.mixer.music.load(f)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                continue
