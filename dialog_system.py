@@ -6,7 +6,7 @@ from exercise1a import represents_int
 from learners.baselines import baseline2_check
 from alternative_rules import NUM_ALTERNATIVES, find_alt_restaurants
 from restaurant_db import food_types, areas, price_ranges, restaurants_given_state, \
-    restaurant_by_name, print_restaurant_options
+    restaurant_by_name, print_restaurant_options, restaurant_string
 
 tokenizer, model, label_encoder = load_nn()
 
@@ -323,8 +323,7 @@ def suggest_restaurant(state, restaurants):
     state["restaurant"] = restaurant["restaurantname"]
 
     # TODO: Ask the user if that is all he needs or phone number etc...
-    return (state, f"{restaurant['restaurantname'].capitalize()} is in the {restaurant['area']} part of town "
-                   f"and serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
+    return state, restaurant_string(restaurant)
 
 
 def restaurant_suggested(state, da, utterance):

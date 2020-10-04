@@ -81,5 +81,8 @@ def filter_by_add_reqs(state, restaurants):
 def print_restaurant_options(restaurants):
     for num in range(0, len(restaurants)):
         restaurant = restaurants[num]
-        print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} is in the {restaurant['area']}"
-              f" part of town and serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
+        print(f"{num + 1}: {restaurant_string(restaurant)}")
+
+def restaurant_string(restaurant):
+    return f"{restaurant['restaurantname'].capitalize()} is in the {restaurant['area']} part of town "
+                   f"and serves {restaurant['food']} in the {restaurant['pricerange']} price range."
