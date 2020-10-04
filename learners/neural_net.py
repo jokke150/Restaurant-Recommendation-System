@@ -95,8 +95,6 @@ def train_nn(x_train, x_test, y_test, y_train):
 
     bestmodel = tuner.get_best_models(num_models=1)[0]
 
-    ##model.fit(x_train, y_train, batch_size=128, epochs=20, verbose=1, validation_split=0.2, class_weight=dictionary_weights)
-
     score = bestmodel.evaluate(x_test, y_test, batch_size=128, verbose=1)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
