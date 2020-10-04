@@ -1,7 +1,9 @@
 import io
+from textwrap import wrap
 from time import sleep
 
 import os
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -12,13 +14,17 @@ CUSTOM_FEATURE_KEYWORDS = {"capitalized text": ["capitalized text", "capitalized
                            "disable affirmation": ["affirmation", "affirm"],
                            "use baseline": ["baseline"],
                            "text to speech": ["speech"],
-                           "explain inference rules": ["explain", "inference", "rules"]}
+                           "explain inference rules": ["explain", "inference", "rules"],
+                           "wrap lines >80 characters": ["wrap", "lines", ">80", "characters"]}
 
 
 def custom_print(text, state):
     if state["config"] is not None and state["confirmed_config"]:
         if "capitalized text" in state["config"]:
             text = text.upper()
+        if "wrap lines >80 characters" in state["config"]:
+            text = '\n'.join(['\n'.join(wrap(line, 90, break_long_words=False, replace_whitespace=False))
+                              for line in text.splitlines() if line.strip() != ''])
         if "delayed response" in state["config"]:
             sleep(3)
 
