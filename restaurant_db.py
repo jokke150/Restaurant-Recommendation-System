@@ -82,4 +82,4 @@ def print_restaurant_options(restaurants):
     for num in range(0, len(restaurants)):
         restaurant = restaurants[num]
         print(f"{num + 1}: {restaurant['restaurantname'].capitalize()} is in the {restaurant['area']}"
-              f" part of townand serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
+              f" part of town and serves {restaurant['food']} in the {restaurant['pricerange']} price range.")
