@@ -1,4 +1,4 @@
-#from dialog_system import custom_print
+from dialog_system import custom_print
 
 class InferenceRule:
     def __init__(self, id, antecedent, consequent, truth, level):
@@ -21,7 +21,7 @@ class InferenceRule:
     def evaluate(self, info):
         for key, value in self.antecedent.items():
             if key not in info or info[key] != value:
-                # TODO: The inverse of rules ("not busy" -> "romantic") is not acceptable, right?
+                # The inverse of rules ("not busy" -> "romantic") can not be inferred
                 return None, None
 
         return self.consequent, self.truth
@@ -53,10 +53,13 @@ def init_inference_rules():
 inference_rules = init_inference_rules()
 
 
-def evaluate_inference_rules(restaurant, rules):
+def evaluate_inference_rules(state, restaurant, rules):
     restaurant_info = restaurant.copy()
     consequents = {}
     rule_fired = True
+
+    if "explain inference rules" in state["config"]:
+        custom_print(f"Evaluating inference rules for restaurant {restaurant['restaurantname'].capitalize()}:", state)
 
     iteration = 0
     while rule_fired:
@@ -65,16 +68,19 @@ def evaluate_inference_rules(restaurant, rules):
         for rule in sorted(rules):
             consequent, truth = rule.evaluate(restaurant_info)
             # Only activate first rule in case of a clash
-            # TODO: Use rule confidence parameter for clashing rules
+            # TODO: Use rule confidence parameter for clashing rules?
             if consequent is not None and consequent not in consequents:
                 consequents[consequent] = truth
-                restaurant_info[consequent] = truth
                 rule_fired = True
                 # TODO: Present the reasoning steps and the conclusion (i.e., the restaurant does/does not satisfy the
                 #  additional requirements) to the user ... in a better way (like natural language)
 
-                # TODO: Make print conditional
-                # custom_print(f"Iteration {iteration}: {rule}")
+                if "explain inference rules" in state["config"]:
+                    custom_print(f"Iteration {iteration}: {rule}", state)
+
+        # update restaurant info for next iteration
+        restaurant_info.update(consequents)
+
     return consequents
 
 

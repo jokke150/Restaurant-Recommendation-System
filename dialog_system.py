@@ -112,6 +112,12 @@ def start_information_gathering(state, da, utterance):
         return state_check(state)
 
 
+def ask_config(state):
+    state["task"] = "configure"
+    options = "\n  - ".join(f"{key}" for key in sorted(CUSTOM_FEATURE_KEYWORDS.keys()))
+    return state, f"Do you want to turn on any custom features?\nPossible options are: \n  - {options}"
+
+
 def ask_pricerange(state):
     state["task"] = "pricerange"
     return state, "What price range would you like?"
@@ -254,6 +260,9 @@ def affirm(state, da, utterance):
             state["confirmed_add_reqs"] = True
         return restaurant_check(state)
     elif da == "deny" or da == "negate":
+        if state["task"] == "config-affirm":
+            state["config"] = None
+            return ask_config(state)
         if state["task"] == "price-affirm":
             state["pricerange"] = None
             return ask_pricerange(state)
@@ -398,7 +407,7 @@ def update_state_for_alternative(state, alternative):
         state["confirmed_pricerange"] = True
     if state["add_reqs"] is not None and state["add_reqs"]:
         # New add reqs: Intersection between old ones and true consequents of alternative
-        consequents = evaluate_inference_rules(alternative, inference_rules)
+        consequents = evaluate_inference_rules(state, alternative, inference_rules)
         state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
 
 

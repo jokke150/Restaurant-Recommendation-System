@@ -11,12 +11,8 @@ CUSTOM_FEATURE_KEYWORDS = {"capitalized text": ["capitalized text", "capitalized
                            "delayed response": ["delayed", "response", "delay"],
                            "disable affirmation": ["affirmation", "affirm"],
                            "use baseline": ["baseline"],
-                           "text to speech": ["speech"]}
-
-def ask_configuration():
-    options = "\n  - ".join(f"{key}" for key in sorted(CUSTOM_FEATURE_KEYWORDS.keys()))
-    print(f"Do you want to turn on any custom features?\n"
-          f"Possible options are: \n  - {options}")
+                           "text to speech": ["speech"],
+                           "explain inference rules": ["explain", "inference", "rules"]}
 
 
 def custom_print(text, state):

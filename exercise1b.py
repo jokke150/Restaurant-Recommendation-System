@@ -1,18 +1,18 @@
 import exercise1a as main
-from configurability import ask_configuration
-from dialog_system import input_output, custom_print
+from dialog_system import input_output, custom_print, ask_config
 import time
 
 if __name__ == '__main__':
 
     print("\nWelcome to the restaurant recommendation system!\n")
 
-    ask_configuration()
-
-    state = {"task": "configure", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
+    state = {"task": "ask-config", "foodtype": None, "confirmed_foodtype": False, "pricerange": None,
          "confirmed_pricerange": False, "area": None, "confirmed_area": False, "confirmed_add_reqs": False,
          "restaurant": None, "add_reqs": None, "alternative_counter": int(0), "last-confirmed": "",
          "config": None, "confirmed_config": False}
+
+    state, output = ask_config(state)
+    custom_print(output, state)
 
     while not (state["task"] == "end"):
         inp = input().lower()

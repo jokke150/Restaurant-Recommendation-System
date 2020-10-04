@@ -49,28 +49,31 @@ def filter_by_add_reqs(state, restaurants):
         return restaurants
     else:
         filtered = []
+
+        if "explain inference rules" in state["config"]:
+            custom_print(f"Checking for {len(restaurants)} restaurants whether they comply with your additional "
+                         f"requirements.\n", state)
+
         for i in range(0, len(restaurants)):
             restaurant = restaurants[i]
-            consequents = evaluate_inference_rules(restaurant, inference_rules)
+            consequents = evaluate_inference_rules(state, restaurant, inference_rules)
 
             # We only look at requirements which can be met by a restaurant (true consequents)
             met_requirements = get_true_consequents(consequents)
 
             if requirements <= met_requirements:
                 filtered.append(restaurant)
-                # TODO: Make print conditional
-                # print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your requirements.')
+                if "explain inference rules" in state["config"]:
+                    custom_print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your '
+                                 f'requirements.\n', state)
             else:
                 unsatisfied = []
                 for requirement in requirements:
                     if requirement not in met_requirements:
                         unsatisfied.append(requirement)
-                # TODO: Make print conditional
-                # print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following requirements:'
-                #       f'\n{" ".join(f"{req}" for req in unsatisfied)}')
-
-        # print(f"There are {len(restaurants)} complying with your basic requirements.\n"
-        #       f"{len(filtered)} of these satisfy your additional requirements.")
+                if "explain inference rules" in state["config"]:
+                    custom_print(f'"{restaurant["restaurantname"].capitalize()}" does not meet the following '
+                                 f'requirements:\n{" ".join(f"{req}" for req in unsatisfied)}\n', state)
 
         return filtered
 
