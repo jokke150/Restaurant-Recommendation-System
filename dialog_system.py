@@ -283,6 +283,9 @@ def affirm(state, da, utterance):
         if state["task"] == "area-affirm":
             state["area"] = None
             return ask_area(state)
+        if state["task"] == "add-reqs-affirm":
+            state["add_reqs"] = None
+            return ask_add_reqs(state)
     else:
         return ask_again(state)
 
