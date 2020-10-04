@@ -25,6 +25,7 @@ MAX_TRIALS = 20
 EXECUTION_PER_TRIAL = 2
 SEED = 1
 
+
 def train_nn(x_train, x_test, y_test, y_train):
     # Add class weights to deal with unbalanced distribution of labels
     class_weights = class_weight.compute_class_weight('balanced',
@@ -79,7 +80,7 @@ def train_nn(x_train, x_test, y_test, y_train):
                                 input_length=max_words,
                                 trainable=False)
 
-    model = hypemodel(embedding_layer, max_words=max_words, num_classes=num_classes)
+    model = MyHyperModel(embedding_layer, max_words=max_words, num_classes=num_classes)
     tuner = Hyperband(
         model,
         max_epochs=HYPERBAND_MAX_EPOCHS,
@@ -144,8 +145,7 @@ def predict_nn(text, tokenizer, model, label_encoder):
     return label_encoder.inverse_transform(prediction)[0]
 
 
-class hypemodel(HyperModel):
-
+class MyHyperModel(HyperModel):
     def __init__(self, embedding_layer, num_classes, max_words):
         self.num_classes = num_classes
         self.embedding_layer = embedding_layer
