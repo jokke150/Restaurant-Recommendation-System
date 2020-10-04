@@ -37,9 +37,9 @@ def init_inference_rules():
     rules.append(InferenceRule(1, {"pricerange": "cheap", "food quality": "good food"}, "busy", True, 1, 0.8))
     rules.append(InferenceRule(2, {"food": "spanish"}, "long time", True, 1, 0.6))
     rules.append(InferenceRule(3, {"busy": True}, "long time", True, 2, 1.0))
-    rules.append(InferenceRule(4, {"long time": True}, "children", False, 2, 0.9))
+    rules.append(InferenceRule(4, {"long time": True}, "children", False, 3, 0.9))  # must be level 3!
     rules.append(InferenceRule(5, {"busy": True}, "romantic", False, 2, 0.7))
-    rules.append(InferenceRule(6, {"long time": True}, "romantic", True, 2, 1.0))
+    rules.append(InferenceRule(6, {"long time": True}, "romantic", True, 3, 1.0))  # must be level 3!
 
     # Custom rules
     rules.append(InferenceRule(7, {"seats": "above 100"}, "large group", True, 1, 0.8))
@@ -77,17 +77,6 @@ def evaluate_inference_rules(state, restaurant, rules):
                      (confidence > confidence_by_consequent[consequent] and consequents[consequent] != truth)):
                 if "explain inference rules" in state["config"]:
                     custom_print(f"Iteration {iteration}: {rule}", state)
-
-                if consequent in consequents:
-                    # reset consequents and their confidence
-                    # Otherwise they could be based on the opposite truth value of the consequent with lower confidence
-                    # that is to be replaced.
-                    if "explain inference rules" in state["config"]:
-                        custom_print("Existing consequent with lower confidence and differing truth value detected.\n"
-                                     "Resetting all consequents because they could be based on the old truth value.",
-                                     state)
-                    consequents = {}
-                    confidence_by_consequent = {}
 
                 consequents[consequent] = truth
                 confidence_by_consequent[consequent] = confidence

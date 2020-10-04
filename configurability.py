@@ -10,12 +10,12 @@ import pygame
 from gtts import gTTS
 
 CUSTOM_FEATURE_KEYWORDS = {"capitalized text": ["capitalized text", "capitalized", "capital"],
-                           "delayed response": ["delayed", "response", "delay"],
+                           "delayed response": ["delayed", "delay"],
                            "disable affirmation": ["affirmation", "affirm"],
                            "use baseline": ["baseline"],
                            "text to speech": ["speech"],
                            "explain inference rules": ["explain", "inference", "rules"],
-                           "wrap lines >80 characters": ["wrap", "lines", ">80", "characters"]}
+                           "wrap lines >80 characters": ["wrap", "80", "characters"]}
 
 
 def custom_print(text, state):
