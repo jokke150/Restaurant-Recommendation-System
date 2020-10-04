@@ -64,18 +64,22 @@ def state_check(state):
         if "disable affirmation" not in state["config"]:
             return request_price_affirm(state)
         state["confirmed_pricerange"] = True
+        return restaurant_check(state)
     if state["foodtype"] is not None and not state["confirmed_foodtype"]:
         if "disable affirmation" not in state["config"]:
             return request_food_affirm(state)
         state["confirmed_foodtype"] = True
+        return restaurant_check(state)
     if state["area"] is not None and not state["confirmed_area"]:
         if "disable affirmation" not in state["config"]:
             return request_area_affirm(state)
         state["confirmed_area"] = True
+        return restaurant_check(state)
     if state["add_reqs"] is not None and not state["confirmed_add_reqs"]:
         if "disable affirmation" not in state["config"]:
             return request_add_reqs_affirm(state)
         state["confirmed_add_reqs"] = True
+        return restaurant_check(state)
     if state["pricerange"] is None:
         return ask_pricerange(state)
     if state["foodtype"] is None:
