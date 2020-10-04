@@ -287,7 +287,7 @@ def restaurant_check(state):
     restaurants = restaurants_given_state(state)
 
     if len(restaurants) == 0:
-        suggest_alternatives_changed_prefs(state)
+        return suggest_alternatives_changed_prefs(state)
 
     elif len(restaurants) == 1:
         if not (state["confirmed_pricerange"] and state["confirmed_foodtype"]
