@@ -45,7 +45,8 @@ def init_inference_rules():
     rules.append(InferenceRule(9, {"food": "chinese"}, "spicy", True, 1))
     rules.append(InferenceRule(10, {"good value": True, "romantic": True}, "first date", True, 2))
     rules.append(InferenceRule(11, {"spicy": True}, "children", False, 2))
-    rules.append(InferenceRule(12, {"large group": True, "children":  False}, "business meeting", True, 3))
+    rules.append(InferenceRule(12, {"children": False}, "quiet", True, 3))
+    rules.append(InferenceRule(13, {"large group": True, "quiet":  True}, "business meeting", True, 4))
 
     return rules
 
@@ -72,9 +73,6 @@ def evaluate_inference_rules(state, restaurant, rules):
             if consequent is not None and consequent not in consequents:
                 consequents[consequent] = truth
                 rule_fired = True
-                # TODO: Present the reasoning steps and the conclusion (i.e., the restaurant does/does not satisfy the
-                #  additional requirements) to the user ... in a better way (like natural language)
-
                 if "explain inference rules" in state["config"]:
                     custom_print(f"Iteration {iteration}: {rule}", state)
 

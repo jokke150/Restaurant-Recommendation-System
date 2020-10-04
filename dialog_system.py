@@ -425,17 +425,17 @@ def get_preference_options(state):
     pricerange = state["pricerange"]
     add_reqs = state["add_reqs"]
 
-    preference_options = []
+    pref_options = []
     if foodtype is not None and state["confirmed_foodtype"]:
-        preference_options.append("foodtype")
+        pref_options.append("foodtype")
     if area is not None and state["confirmed_area"]:
-        preference_options.append("area")
+        pref_options.append("area")
     if pricerange is not None and state["confirmed_pricerange"]:
-        preference_options.append("pricerange")
+        pref_options.append("pricerange")
     if add_reqs is not None and state["confirmed_add_reqs"]:
-        preference_options.append("add_reqs")
+        pref_options.append("add_reqs")
 
-    return preference_options
+    return pref_options
 
 
 def preference_options(state, da, utterance):
