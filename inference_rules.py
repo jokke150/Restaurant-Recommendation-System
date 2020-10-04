@@ -83,4 +83,4 @@ def evaluate_inference_rules(state, restaurant, rules):
 
 
 def get_true_consequents(consequents):
-    return [req for req, truth in consequents.items() if truth]
+    return set(req for req, truth in consequents.items() if truth)

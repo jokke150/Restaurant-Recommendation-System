@@ -118,9 +118,8 @@ def start_information_gathering(state, da, utterance):
         if state["add_reqs"] is None:
             words = closest_words(split, ADD_REQ_KEYWORDS)
             if words is not None and words:
-                state["add_reqs"] = words
-
-        return state_check(state)
+                state["add_reqs"] = set(words)
+    return state_check(state)
 
 
 def ask_config(state):
@@ -207,13 +206,13 @@ def is_any(utterance):
 
 
 def set_add_reqs(state, da, utterance):
-    state["add_reqs"] = []
+    state["add_reqs"] = set()
 
     if da != "deny" and da != "negate":
         for req in ADD_REQ_KEYWORDS:
             word = closest_word(utterance.split(), [req])
             if word is not None:
-                state["add_reqs"].append(req)
+                state["add_reqs"].add(req)
     return state_check(state)
 
 
@@ -423,7 +422,7 @@ def update_state_for_alternative(state, alternative):
     if state["add_reqs"] is not None and state["add_reqs"]:
         # New add reqs: Intersection between old ones and true consequents of alternative
         consequents = evaluate_inference_rules(state, alternative, inference_rules)
-        state["add_reqs"] = list(set(state["add_reqs"]) & set(get_true_consequents(consequents)))
+        state["add_reqs"] = state["add_reqs"] & get_true_consequents(consequents)
 
 
 def get_preference_options(state):

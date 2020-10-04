@@ -61,7 +61,7 @@ def filter_by_add_reqs(state, restaurants):
             # We only look at requirements which can be met by a restaurant (true consequents)
             met_requirements = get_true_consequents(consequents)
 
-            if requirements <= met_requirements:
+            if requirements.issubset(met_requirements):
                 filtered.append(restaurant)
                 if "explain inference rules" in state["config"]:
                     custom_print(f'"{restaurant["restaurantname"].capitalize()}" complies with all of your '
