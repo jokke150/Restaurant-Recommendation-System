@@ -20,10 +20,10 @@ from kerastuner import HyperModel
 max_words = 100
 num_words = 1000
 
-HYPERBAND_MAX_EPOCHS = 15
+HYPERBAND_MAX_EPOCHS = 40
 MAX_TRIALS = 20
 EXECUTION_PER_TRIAL = 2
-SEED = 50
+SEED = 1
 
 def train_nn(x_train, x_test, y_test, y_train):
     # Add class weights to deal with unbalanced distribution of labels
@@ -164,11 +164,7 @@ class hypemodel(HyperModel):
             default=0.25,
             step=0.05,
         ))(x)  # To prevent overfitting
-        x = Conv1D(filters=hp.Choice(
-            'num_filters',
-            values=[64, 128],
-            default=64,
-        ), activation='relu', padding='same', kernel_size=2)(x)
+        x = Conv1D(128, 2, activation='relu', padding='same')(x)
         x = MaxPooling1D(2)(x)
         x = Dropout(rate=hp.Float(
             'dropout_2',
@@ -179,7 +175,7 @@ class hypemodel(HyperModel):
         ))(x)  # To prevent overfitting
         x = Conv1D(filters=hp.Choice(
             'num_filters',
-            values=[64, 128],
+            values=[32, 64],
             default=64,
         ), activation='relu', padding='same', kernel_size=2)(x)
         x = GlobalMaxPooling1D()(x)
