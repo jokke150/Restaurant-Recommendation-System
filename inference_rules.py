@@ -1,4 +1,4 @@
-from dialog_system import custom_print
+from configurability import custom_print
 
 
 class InferenceRule:

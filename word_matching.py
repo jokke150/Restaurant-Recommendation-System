@@ -6,7 +6,6 @@ def closest_word_in_list(word, words):
     closest_words = []
     closest_distance = 500
     for baseword in words:
-        # TODO: Conditionally disable Levenshtein edit distance for preference extraction
         dist = Levenshtein.distance(word, baseword)
         if dist < closest_distance:
             closest_distance = dist
@@ -20,7 +19,6 @@ def closest_word_in_list(word, words):
 def choose_closest_word(word, words):
     closest_distance, closest_words = closest_word_in_list(word, words)
     if (len(word) <= 4 and closest_distance <= 1) or (len(word) > 4 and closest_distance <= 3):
-        # TODO Ask the user which of the options is the one he was asking for
         if len(closest_words) > 1:
             return closest_distance, closest_words[random.randrange(0, len(closest_words))]
         else:

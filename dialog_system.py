@@ -10,16 +10,13 @@ from restaurant_db import food_types, areas, price_ranges, restaurants_given_sta
 
 tokenizer, model, label_encoder = load_nn()
 
-ANY_KEYWORDS = ["any", "anything", "dont care", "don't care"]  # TODO: Add more?
+ANY_KEYWORDS = ["any", "anything", "dont care", "don't care"]
 
 # We treat "long time" and "busy" as hidden properties the user cannot query for.
 # It is unlikely that a user would want a busy restaurant and just because our rule does
 # not come to the conclusion that a restaurant is busy, it does not mean it is not.
 ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy", "first date",
                     "business meeting"]
-
-
-# TODO: Clean up and distribute to multiple files
 
 
 def input_output(state, utterance):
@@ -31,6 +28,13 @@ def input_output(state, utterance):
     if dialog_act == "bye":
         state["task"] = "end"
         return state, "Goodbye, enjoy your meal!"
+
+    if dialog_act == "thankyou":
+        if "bye" in utterance.split():
+            state["task"] = "end"
+            return state, "Goodbye, enjoy your meal!"
+        else:
+            return state, "You are welcome!"
 
     switcher = {
         "configure": set_config,
@@ -57,9 +61,6 @@ def input_output(state, utterance):
 def state_check(state):
     if state["config"] is not None and not state["confirmed_config"]:
         return request_config_affirm(state)
-
-    # TODO: Add general affirm in which multiple things can be confirmed at once?
-    # TODO: Allow preferences to be stated in random order or not
     if state["pricerange"] is not None and not state["confirmed_pricerange"]:
         if "disable affirmation" not in state["config"]:
             return request_price_affirm(state)
@@ -94,10 +95,6 @@ def state_check(state):
 
 def start_information_gathering(state, da, utterance):
     split = utterance.split()
-
-    # TODO: Allow preferences to be stated in a single utterance only, or in multiple utterances with one preference per
-    #  utterance only, or without restrictions (any number of utterances and any number of preferences per utterance)
-
     if da == "inform":
         # Check if the area is unknown but mentioned by the user
         if state["area"] is None:
@@ -151,6 +148,78 @@ def ask_add_reqs(state):
 
 def ask_again(state):
     return state, "I was not able to interpret your input. Please rephrase."
+
+
+def request_config_affirm(state):
+    state["task"] = "config-affirm"
+    if len(state['config']) == 0:
+        return state, "Is it correct, that you do not want to enable any custom features?"
+    else:
+        return state, f"Is it correct, that you want to enable the following custom features?" \
+                      f"\n{', '.join(f'{feature}' for feature in state['config'])}"
+
+
+def request_price_affirm(state):
+    state["task"] = "price-affirm"
+    return state, "Is it correct, that you want a restaurant with " + state["pricerange"] + " price range?"
+
+
+def request_food_affirm(state):
+    state["task"] = "food-affirm"
+    return state, "Is it correct, that you want a restaurant with " + state["foodtype"] + " cuisine?"
+
+
+def request_area_affirm(state):
+    state["task"] = "area-affirm"
+    return state, "Is it correct, that you want a restaurant in the " + state["area"] + " part of town?"
+
+
+def request_add_reqs_affirm(state):
+    state["task"] = "add-reqs-affirm"
+    if len(state['add_reqs']) == 0:
+        return state, "Is it correct, that you do not have any additional requirements?"
+    else:
+        return state, f"Is it correct, that you have the following additional requirements?" \
+                      f"\n{', '.join(f'{req}' for req in state['add_reqs'])}"
+
+
+def affirm(state, da, utterance):
+    if da == "affirm":
+        if state["task"] == "config-affirm":
+            state["task"] = "start"
+            state["confirmed_config"] = True
+            return state, "\nThank you for selecting custom features!\n" \
+                          "You can ask for restaurants by area, price range, or food type.\nHow may I help you?"
+        if state["task"] == "price-affirm":
+            state["confirmed_pricerange"] = True
+            state["last-confirmed"] = "pricerange"
+        elif state["task"] == "food-affirm":
+            state["last-confirmed"] = "foodtype"
+            state["confirmed_foodtype"] = True
+        elif state["task"] == "area-affirm":
+            state["last-confirmed"] = "area"
+            state["confirmed_area"] = True
+        elif state["task"] == "add-reqs-affirm":
+            state["confirmed_add_reqs"] = True
+        return restaurant_check(state)
+    elif da == "deny" or da == "negate":
+        if state["task"] == "config-affirm":
+            state["config"] = None
+            return ask_config(state)
+        if state["task"] == "price-affirm":
+            state["pricerange"] = None
+            return ask_pricerange(state)
+        if state["task"] == "food-affirm":
+            state["foodtype"] = None
+            return ask_foodtype(state)
+        if state["task"] == "area-affirm":
+            state["area"] = None
+            return ask_area(state)
+        if state["task"] == "add-reqs-affirm":
+            state["add_reqs"] = None
+            return ask_add_reqs(state)
+    else:
+        return ask_again(state)
 
 
 def set_config(state, da, utterance):
@@ -216,79 +285,6 @@ def set_add_reqs(state, da, utterance):
     return state_check(state)
 
 
-def request_config_affirm(state):
-    state["task"] = "config-affirm"
-    if len(state['config']) == 0:
-        return state, "Is it correct, that you do not want to enable any custom features?"
-    else:
-        return state, f"Is it correct, that you want to enable the following custom features?" \
-                      f"\n{', '.join(f'{feature}' for feature in state['config'])}"
-
-
-def request_price_affirm(state):
-    state["task"] = "price-affirm"
-    # TODO: fix this for any
-    return state, "Is it correct, that you want a restaurant in the " + state["pricerange"] + " price range?"
-
-
-def request_food_affirm(state):
-    state["task"] = "food-affirm"
-    return state, "Is it correct, that you want a restaurant with " + state["foodtype"] + " cuisine?"
-
-
-def request_area_affirm(state):
-    state["task"] = "area-affirm"
-    return state, "Is it correct, that you want a restaurant in the " + state["area"] + " part of town?"
-
-
-def request_add_reqs_affirm(state):
-    state["task"] = "add-reqs-affirm"
-    if len(state['add_reqs']) == 0:
-        return state, "Is it correct, that you do not have any additional requirements?"
-    else:
-        return state, f"Is it correct, that you have the following additional requirements?" \
-                      f"\n{', '.join(f'{req}' for req in state['add_reqs'])}"
-
-
-def affirm(state, da, utterance):
-    if da == "affirm":
-        if state["task"] == "config-affirm":
-            state["task"] = "start"
-            state["confirmed_config"] = True
-            return state, "\nThank you for selecting custom features!\n" \
-                          "You can ask for restaurants by area, price range, or food type.\nHow may I help you?"
-        if state["task"] == "price-affirm":
-            state["confirmed_pricerange"] = True
-            state["last-confirmed"] = "pricerange"
-        elif state["task"] == "food-affirm":
-            state["last-confirmed"] = "foodtype"
-            state["confirmed_foodtype"] = True
-        elif state["task"] == "area-affirm":
-            state["last-confirmed"] = "area"
-            state["confirmed_area"] = True
-        elif state["task"] == "add-reqs-affirm":
-            state["confirmed_add_reqs"] = True
-        return restaurant_check(state)
-    elif da == "deny" or da == "negate":
-        if state["task"] == "config-affirm":
-            state["config"] = None
-            return ask_config(state)
-        if state["task"] == "price-affirm":
-            state["pricerange"] = None
-            return ask_pricerange(state)
-        if state["task"] == "food-affirm":
-            state["foodtype"] = None
-            return ask_foodtype(state)
-        if state["task"] == "area-affirm":
-            state["area"] = None
-            return ask_area(state)
-        if state["task"] == "add-reqs-affirm":
-            state["add_reqs"] = None
-            return ask_add_reqs(state)
-    else:
-        return ask_again(state)
-
-
 def restaurant_check(state):
     restaurants = restaurants_given_state(state)
 
@@ -309,10 +305,8 @@ def suggest_alternatives_changed_prefs(state):
     state["alternatives"] = alt_restaurants
     state["task"] = "restaurant-options"
 
-    # TODO: Ask for a preference change if there are no alternatives
-    # TODO: Change wording if there is only one alternative
     custom_print("There are no restaurants with your current set of preferences."
-                 "\nThese are a couple of alternatives:", state)
+                 "\nThese are possible alternatives:", state)
     print_restaurant_options(alt_restaurants)
     return state, "Type a number to choose an alternative.\n" + \
                   "Type anything else to change your preferences."
@@ -322,20 +316,16 @@ def suggest_restaurant(state, restaurants):
     if not restaurants:
         return suggest_alternatives_changed_prefs(state)
 
-    # TODO: Always offer a small or large number of recommendations
-
     restaurant = restaurants[0]
     state["task"] = "restaurant-suggested"
     state["restaurant"] = restaurant["restaurantname"]
 
-    # TODO: Ask the user if that is all he needs or phone number etc...
     return state, restaurant_string(restaurant)
 
 
 def restaurant_suggested(state, da, utterance):
     split = utterance.split()
     if da == "reqalts":
-        # TODO: This is actually really hard to reach... -> "anything else"
         return suggest_alternatives_same_prefs(state)
     if da == "request":
         string = ""
@@ -375,13 +365,10 @@ def suggest_alternatives_same_prefs(state):
         state["task"] = "restaurant-options"
         return state, "Type a number to choose an alternative.\n" + \
                       "Type anything else to change your preferences."
-    # TODO: Allow user to change preferences if there are no alternatives
     return state, "Sorry, I can't find any alternatives."
 
 
 def restaurant_options(state, da, utterance):
-    # TODO: Should we allow the user to return to his previous choice?
-
     split = utterance.split()
     for sp in split:
         if represents_int(sp):
@@ -394,7 +381,6 @@ def restaurant_options(state, da, utterance):
                 # Update preferences in state if user selects alternative to stay consistent
                 update_state_for_alternative(state, alternative)
 
-                # TODO: Ask the user if that is all he needs or phone number etc...
                 return state, f"You choose:\n{alternative['restaurantname'].capitalize()} in the {alternative['area']} " \
                               f"part of town that serves {alternative['food']} in the {alternative['pricerange']} " \
                               f"price range."
@@ -445,8 +431,6 @@ def get_preference_options(state):
 
 
 def preference_options(state, da, utterance):
-    # TODO: Make this more natural language?
-
     split = utterance.split()
 
     for sp in split:
