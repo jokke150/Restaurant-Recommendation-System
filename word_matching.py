@@ -6,6 +6,7 @@ def closest_word_in_list(word, words):
     closest_words = []
     closest_distance = 500
     for baseword in words:
+        # TODO: Conditionally disable Levenshtein edit distance for preference extraction
         dist = Levenshtein.distance(word, baseword)
         if dist < closest_distance:
             closest_distance = dist

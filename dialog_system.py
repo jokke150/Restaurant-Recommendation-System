@@ -19,6 +19,9 @@ ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy"
                     "business meeting"]
 
 
+# TODO: Clean up and distribute to multiple files
+
+
 def input_output(state, utterance):
     if state["config"] is not None and "use baseline" in state["config"]:
         dialog_act = baseline2_check(utterance)
@@ -52,10 +55,11 @@ def input_output(state, utterance):
 
 
 def state_check(state):
-    # TODO: Add general affirm in which multiple things can be confirmed at once?
     if state["config"] is not None and not state["confirmed_config"]:
         return request_config_affirm(state)
 
+    # TODO: Add general affirm in which multiple things can be confirmed at once?
+    # TODO: Allow preferences to be stated in random order or not
     if state["pricerange"] is not None and not state["confirmed_pricerange"]:
         if "disable affirmation" not in state["config"]:
             return request_price_affirm(state)
@@ -86,6 +90,9 @@ def state_check(state):
 
 def start_information_gathering(state, da, utterance):
     split = utterance.split()
+
+    # TODO: Allow preferences to be stated in a single utterance only, or in multiple utterances with one preference per
+    #  utterance only, or without restrictions (any number of utterances and any number of preferences per utterance)
 
     if da == "inform":
         # Check if the area is unknown but mentioned by the user
@@ -308,6 +315,8 @@ def suggest_alternatives_changed_prefs(state):
 def suggest_restaurant(state, restaurants):
     if not restaurants:
         return suggest_alternatives_changed_prefs(state)
+
+    # TODO: Always offer a small or large number of recommendations
 
     restaurant = restaurants[0]
     state["task"] = "restaurant-suggested"
