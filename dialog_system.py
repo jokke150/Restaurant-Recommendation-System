@@ -251,7 +251,7 @@ def set_foodtype(state, da, utterance):
         if is_any(utterance, state):
             state["foodtype"] = "any"
             return state_check(state)
-        word = closest_word(utterance.split(), food_types, ("ypoDistance" if "typoDistance" in state["config"] else ""))
+        word = closest_word(utterance.split(), food_types, ("typoDistance" if "typoDistance" in state["config"] else ""))
         if word is not None:
             state["foodtype"] = word
             return state_check(state)
