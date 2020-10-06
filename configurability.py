@@ -16,7 +16,8 @@ CUSTOM_FEATURE_KEYWORDS = {"capitalized text": ["capitalized text", "capitalized
                            "text to speech": ["speech"],
                            "explain inference rules": ["explain", "inference", "rules"],
                            "wrap lines >80 characters": ["wrap", "80", "characters"],
-                           "typoDistance": ["TypoDistance"]}
+                           "typoDistance": ["TypoDistance"],
+                           "noWordDistance": ["no","word","Distance"]}
 
 
 def custom_print(text, state):

@@ -9,6 +9,12 @@ def closest_word_in_list(word, words, func):
     for baseword in words:
         if func == "typoDistance":
             dist = typoDistance(word, baseword)
+        elif func == "noWordDistance":
+            if word == baseword:
+                closest_words.append(baseword)
+                dist = 0
+            else:
+                dist = 600
         else:
             dist = Levenshtein.distance(word, baseword)
         if dist < closest_distance:
@@ -26,6 +32,11 @@ def choose_closest_word(word, words, func):
         lensplit = 4
         shortwordmax = 1
         longwordmax = 3
+    elif func == "noWordDistance":
+        if len(closest_words) > 0:
+            return closest_distance, closest_words[0]
+        else:
+            return None
     else:
         lensplit = 4
         shortwordmax = 1
@@ -56,15 +67,18 @@ def matched_words_in_split(split, words, func):
     return list(map(lambda x: take_second(x), lst))
 
 
-def closest_words(split, words, func=""):
+def closest_words(split, words, state):
+    func = "typoDistance" if "typoDistance" in state["config"] else ""
+    if "noWordDistance" in state["config"]: func = "noWordDistance"
+
     matched_words = matched_words_in_split(split, words, func)
     if len(matched_words) != 0:
         return matched_words
     return []
 
 
-def closest_word(split, words, func=""):
-    matched_words = closest_words(split, words, func)
+def closest_word(split, words, state):
+    matched_words = closest_words(split, words, state)
     if matched_words:
         return matched_words[0]
     return None
