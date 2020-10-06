@@ -97,26 +97,25 @@ def start_information_gathering(state, da, utterance):
     split = utterance.split()
     if da == "inform":
         # Check if the area is unknown but mentioned by the user
-        if state["area"] is None:
-            word = closest_word(split, areas)
-            if word is not None:
-                state["area"] = word
+        check_pref(split, "area", state, areas)
         # Check if the pricerange is unknown but mentioned by the user
-        if state["pricerange"] is None:
-            word = closest_word(split, price_ranges)
-            if word is not None:
-                state["pricerange"] = word
+        check_pref(split, "pricerange", state, price_ranges)
         # Check if the foodtype is unknown but mentioned by the user
-        if state["foodtype"] is None:
-            word = closest_word(split, food_types)
-            if word is not None:
-                state["foodtype"] = word
+        check_pref(split, "foodtype", state, food_types)
         # Check if the additional requirements are unknown but mentioned by the user
         if state["add_reqs"] is None:
-            words = closest_words(split, ADD_REQ_KEYWORDS)
+            words = closest_words(split, ADD_REQ_KEYWORDS,
+                                  ("typoDistance" if "typoDistance" in state["config"] else ""))
             if words is not None and words:
                 state["add_reqs"] = set(words)
     return state_check(state)
+
+
+def check_pref(split, pref, state, prefs):
+    if state[pref] is None:
+        word = closest_word(split, prefs, ("typoDistance" if "typoDistance" in state["config"] else ""))
+        if word is not None:
+            state[pref] = word
 
 
 def ask_config(state):
@@ -227,7 +226,8 @@ def set_config(state, da, utterance):
 
     if da != "deny" and da != "negate":
         for feature, keywords in CUSTOM_FEATURE_KEYWORDS.items():
-            word = closest_word(utterance.split(), keywords)
+            word = closest_word(utterance.split(), keywords,
+                                ("typoDistance" if "typoDistance" in state["config"] else ""))
             if word is not None:
                 state["config"].append(feature)
     return state_check(state)
@@ -235,10 +235,11 @@ def set_config(state, da, utterance):
 
 def set_pricerange(state, da, utterance):
     if da == "inform":
-        if is_any(utterance):
+        if is_any(utterance, state):
             state["pricerange"] = "any"
             return state_check(state)
-        word = closest_word(utterance.split(), price_ranges)
+        word = closest_word(utterance.split(), price_ranges,
+                            ("typoDistance" if "typoDistance" in state["config"] else ""))
         if word is not None:
             state["pricerange"] = word
             return state_check(state)
@@ -247,10 +248,10 @@ def set_pricerange(state, da, utterance):
 
 def set_foodtype(state, da, utterance):
     if da == "inform":
-        if is_any(utterance):
+        if is_any(utterance, state):
             state["foodtype"] = "any"
             return state_check(state)
-        word = closest_word(utterance.split(), food_types)
+        word = closest_word(utterance.split(), food_types, ("ypoDistance" if "typoDistance" in state["config"] else ""))
         if word is not None:
             state["foodtype"] = word
             return state_check(state)
@@ -259,18 +260,18 @@ def set_foodtype(state, da, utterance):
 
 def set_area(state, da, utterance):
     if da == "inform":
-        if is_any(utterance):
+        if is_any(utterance, state):
             state["area"] = "any"
             return state_check(state)
-        word = closest_word(utterance.split(), areas)
+        word = closest_word(utterance.split(), areas, ("typoDistance" if "typoDistance" in state["config"] else ""))
         if word is not None:
             state["area"] = word
             return state_check(state)
     return ask_again(state)
 
 
-def is_any(utterance):
-    word = closest_word(utterance.split(), ANY_KEYWORDS)
+def is_any(utterance, state):
+    word = closest_word(utterance.split(), ANY_KEYWORDS, ("typoDistance" if "typoDistance" in state["config"] else ""))
     return word is not None
 
 
@@ -279,7 +280,7 @@ def set_add_reqs(state, da, utterance):
 
     if da != "deny" and da != "negate":
         for req in ADD_REQ_KEYWORDS:
-            word = closest_word(utterance.split(), [req])
+            word = closest_word(utterance.split(), [req], ("typoDistance" if "typoDistance" in state["config"] else ""))
             if word is not None:
                 state["add_reqs"].add(req)
     return state_check(state)
@@ -309,7 +310,7 @@ def suggest_alternatives_changed_prefs(state):
                  "\nThese are possible alternatives:", state)
     print_restaurant_options(alt_restaurants)
     return state, "Type a number to choose an alternative.\n" + \
-                  "Type anything else to change your preferences."
+           "Type anything else to change your preferences."
 
 
 def suggest_restaurant(state, restaurants):
@@ -332,18 +333,19 @@ def restaurant_suggested(state, da, utterance):
         name = state["restaurant"]
         restaurant = restaurant_by_name(name)
 
-        word = closest_word(split, ["phone number", "number"])
+        word = closest_word(split, ["phone number", "number"],
+                            ("typoDistance" if "typoDistance" in state["config"] else ""))
         if word == "phone number" or word == "number":
             number = restaurant["phone"]
             string += "The number is: " + number + "\n"
 
-        word = closest_word(split, ["post code"])
+        word = closest_word(split, ["post code"], ("typoDistance" if "typoDistance" in state["config"] else ""))
 
         if word == "post code":
             postcode = restaurant["postcode"]
             string += "The postcode is " + postcode + "\n"
 
-        word = closest_word(split, ["address"])
+        word = closest_word(split, ["address"], ("typoDistance" if "typoDistance" in state["config"] else ""))
         if word == "address":
             address = restaurant["addr"]
             string += "The address is " + address
@@ -364,7 +366,7 @@ def suggest_alternatives_same_prefs(state):
         state["alternatives"] = alt_restaurants
         state["task"] = "restaurant-options"
         return state, "Type a number to choose an alternative.\n" + \
-                      "Type anything else to change your preferences."
+               "Type anything else to change your preferences."
     return state, "Sorry, I can't find any alternatives."
 
 
