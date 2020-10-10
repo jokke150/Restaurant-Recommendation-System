@@ -12,14 +12,14 @@ def get_all_finds(sentence):
     print(typo_vs_levenshtein(sentence, areas))
     print("priceranges")
     print(typo_vs_levenshtein(sentence, price_ranges))
+    print("Add_Req")
+    print(typo_vs_levenshtein(sentence, ADD_REQ_KEYWORDS))
     print("phone number")
     print(typo_vs_levenshtein(sentence, ["phone number", "number"]))
     print("post code")
     print(typo_vs_levenshtein(sentence, ["post code",]))
     print("address")
     print(typo_vs_levenshtein(sentence, ["address",]))
-    print("Add_Req")
-    print(typo_vs_levenshtein(sentence, ADD_REQ_KEYWORDS))
 
 
 def typo_vs_levenshtein(sentence, words):
