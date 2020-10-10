@@ -12,6 +12,12 @@ def get_all_finds(sentence):
     print(typo_vs_levenshtein(sentence, areas))
     print("priceranges")
     print(typo_vs_levenshtein(sentence, price_ranges))
+    print("phone number")
+    print(typo_vs_levenshtein(sentence, ["phone number", "number"]))
+    print("post code")
+    print(typo_vs_levenshtein(sentence, ["post code",]))
+    print("address")
+    print(typo_vs_levenshtein(sentence, ["address",]))
     print("Add_Req")
     print(typo_vs_levenshtein(sentence, ADD_REQ_KEYWORDS))
 
@@ -36,3 +42,11 @@ def generateTypos(sentence, distance):
     generator = typoGenerator(sentence, distance)
     for d in range(0, 20):
         print(generator.__next__())
+
+
+if __name__ == '__main__':
+    inp = True
+    while not (inp == 0):
+        print("\nType in a request:")
+        inp = input().lower()
+        get_all_finds(inp)
