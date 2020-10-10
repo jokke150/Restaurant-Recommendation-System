@@ -2,6 +2,8 @@ from word_matching import choose_closest_word, get_2_word_list,take_second, take
 from restaurant_db import food_types, areas, price_ranges
 from typodistance import typoGenerator
 
+ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy", "first date",
+                    "business meeting"]
 
 def get_all_finds(sentence):
     print("foodtypes")
@@ -10,6 +12,8 @@ def get_all_finds(sentence):
     print(typo_vs_levenshtein(sentence, areas))
     print("priceranges")
     print(typo_vs_levenshtein(sentence, price_ranges))
+    print("Add_Req")
+    print(typo_vs_levenshtein(sentence, ADD_REQ_KEYWORDS))
 
 
 def typo_vs_levenshtein(sentence, words):
