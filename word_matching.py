@@ -26,21 +26,16 @@ def closest_word_in_list(word, words, func):
     return closest_distance, closest_words
 
 
-def choose_closest_word(word, words, func):
+def choose_closest_word(word, words, func, diff=0):
     closest_distance, closest_words = closest_word_in_list(word, words, func)
-    if func == "typoDistance":
-        lensplit = 4
-        shortwordmax = 1
-        longwordmax = 3
-    elif func == "noWordDistance":
+    lensplit = 4
+    shortwordmax = 1 + diff
+    longwordmax = 3 + diff
+    if func == "noWordDistance":
         if len(closest_words) > 0:
             return closest_distance, closest_words[0]
         else:
             return None
-    else:
-        lensplit = 4
-        shortwordmax = 1
-        longwordmax = 3
 
     if (len(word) <= lensplit and closest_distance <= shortwordmax) or (
             len(word) > lensplit and closest_distance <= longwordmax):
