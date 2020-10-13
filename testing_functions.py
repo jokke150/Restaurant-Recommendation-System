@@ -5,6 +5,20 @@ from typodistance import typoGenerator
 ADD_REQ_KEYWORDS = ["children", "romantic", "large group", "good value", "spicy", "first date",
                     "business meeting"]
 
+def create_test_data():
+    file1 = open('data/all_dialogs.txt', 'r')
+    Lines = file1.readlines()
+    datalines = []
+
+    for i in range(0,len(Lines)):
+        if Lines[i] == "turn index: 0\n":
+            datalines.append(i+2)
+
+    data = list(map(lambda x: Lines[x], datalines))
+
+    return data
+
+
 def get_all_finds(sentence):
     print("foodtypes")
     print(typo_vs_levenshtein(sentence, food_types))
@@ -46,6 +60,7 @@ def generateTypos(sentence, distance):
 
 if __name__ == '__main__':
     inp = True
+    print(create_test_data())
     while not (inp == 0):
         print("\nType in a request:")
         inp = input().lower()
