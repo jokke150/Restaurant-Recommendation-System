@@ -21,9 +21,11 @@ def create_test_data():
             datalines.append(i+2)
     data = list(map(lambda x: Lines[x][len("user: "):][:-len("\n")], datalines))
     random.shuffle(data)
+
     data = list(filter(lambda x: x != "noise" and x != "static" and x != "sil" and x != "unintelligible" and
                                  x != "cough", data))
-    ##data = list(map(lambda x: generateTypos(x,3),data))
+    print(len(data))
+    data = list(map(generateTypos,data))
     print(len(data))
     data = list(map(lambda x: get_all_finds(x),data))
     file.close()
@@ -42,9 +44,9 @@ def get_all_finds(sentence):
             typo_vs_levenshtein(words, ADD_REQ_KEYWORDS)]
 
     x = [[lst[0][0], lst[1][0], lst[2][0], lst[3][0]], [lst[0][1], lst[1][1], lst[2][1], lst[3][1]],
-         [lst[0][2], lst[1][2], lst[2][2], lst[3][2]], [lst[0][3], lst[1][3], lst[2][3], lst[3][3]]]
+         [lst[0][2], lst[1][2], lst[2][2], lst[3][2]]]
 
-    if not (x[0] == x[1] and x[1] == x[2] and lst[2] == x[3]):
+    if not (x[0] == x[1] and x[1] == x[2]):
 
         file.write(sentence + tostring(x) + "\n")
         return lst
@@ -75,11 +77,26 @@ def tostrings(s):
 
 
 def typo_vs_levenshtein(lst, words):
-    lev1 ,lev2= matched_words_in_split(lst, words, "")
-    typ1, typ2= matched_words_in_split(lst, words, "typoDistance")
-    return (lev1,lev2,typ1,typ2)
+    lev1 = matched_words_in_split(lst, words, "")
+    typ1, typ2= matched_words_in_split_2(lst, words, "typoDistance")
+    return (lev1,typ1,typ2)
 
 def matched_words_in_split(lst, words, func,diff=0):
+    additt = []
+    for word in lst:
+        closest_distance, closest_words = closest_word_in_list(word, words, func)
+        wd = filt(word,closest_distance, closest_words,diff)
+        if wd is not None:
+            additt.append(wd)
+
+    if len(additt) > 0:
+        additt.sort(key=take_first)
+        ob = additt[0]
+    else:
+        ob = additt
+    return ob
+
+def matched_words_in_split_2(lst, words, func,diff=0):
     additt = []
     additt2 = []
     for word in lst:
@@ -111,12 +128,23 @@ def filt(word,closest_distance, closest_words,diff):
         else:
             return closest_distance, closest_words[0]
 
-def generateTypos(sentence, distance):
-    generator = typoGenerator(sentence, distance)
-    for d in range(0, 20):
-        generator.__next__()
-    return generator.__next__()
+def generateTypos(sentence):
+    split = sentence.split()
+    nrofwords = random.randint(1,3)
+    for i in range(0,nrofwords):
+        word = random.randint(0,len(split)-1)
+        distance = random.randint(1,5)
+        split[word] = generate(split[word],distance)
 
+    s = ' '.join(split)
+    return s
+
+
+def generate(word, distance):
+    generator = typoGenerator(word, distance)
+    generator.__next__()
+    generator.__next__()
+    return generator.__next__()
 
 if __name__ == '__main__':
     inp = True
